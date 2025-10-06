@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memory Match</title>
+  <style>
+    body {
+      font-family: Poppins, sans-serif;
+      text-align: center;
+      background: #f9f9ff;
+      padding: 2rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 80px);
+      grid-gap: 10px;
+      justify-content: center;
+      margin-top: 2rem;
+    }
+    .card {
+      width: 80px;
+      height: 80px;
+      background: #4c9ef1;
+      color: white;
+      font-size: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+    a {
+      display: block;
+      margin-top: 2rem;
+      color: #4c9ef1;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧩 Memory Match</h1>
+  <p>Find all matching pairs!</p>
+  <div class="grid" id="grid"></div>
+  <p id="result"></p>
+  <a href="../index.html">🏠 Back to Home</a>
+
+  <script>
+    const grid = document.getElementById("grid");
+    const resultDisplay = document.getElementById("result");
+    const cards = ["🐶", "🐱", "🐰", "🐸", "🐶", "🐱", "🐰", "🐸"];
+    let chosenCards = [];
+    let chosenIds = [];
+    let matches = 0;
+
+    function createBoard() {
+      const shuffled = cards.sort(() => 0.5 - Math.random());
+      shuffled.forEach((symbol, index) => {
+        const card = document.createElement("div");
+        card.classList.add("card");
+        card.dataset.id = index;
+        card.textContent = "?";
+        card.addEventListener("click", flipCard);
+        grid.appendChild(card);
+      });
+    }
+
+    function flipCard() {
+      const id = this.dataset.id;
+      if (chosenIds.includes(id)) return;
+      this.textContent = cards[id];
+      chosenCards.push(cards[id]);
+      chosenIds.push(id);
+
+      if (chosenCards.length === 2) {
+        setTimeout(checkMatch, 600);
+      }
+    }
+
+    function checkMatch() {
+      const allCards = document.querySelectorAll(".card");
+      const [firstId, secondId] = chosenIds;
+      if (cards[firstId] === cards[secondId]) {
+        matches++;
+        allCards[firstId].style.visibility = "hidden";
+        allCards[secondId].style.visibility = "hidden";
+      } else {
+        allCards[firstId].textContent = "?";
+        allCards[secondId].textContent = "?";
+      }
+      chosenCards = [];
+      chosenIds = [];
+      if (matches === cards.length / 2) {
+        resultDisplay.textContent = "🎉 You matched all pairs!";
+      }
+    }
+
+    createBoard();
+  </script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Math Challenge</title>
+  <style>
+    body {
+      font-family: Poppins, sans-serif;
+      text-align: center;
+      padding: 2rem;
+      background: #f9f9ff;
+    }
+    #question {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    input {
+      font-size: 1.2rem;
+      padding: 0.5rem;
+      margin: 0.5rem;
+      width: 80px;
+      text-align: center;
+    }
+    button {
+      background: #4c9ef1;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #result {
+      font-size: 1.2rem;
+      margin-top: 1rem;
+    }
+    a {
+      display: block;
+      margin-top: 2rem;
+      color: #4c9ef1;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧠 Math Challenge</h1>
+  <div id="question"></div>
+  <input type="number" id="answer" placeholder="Your answer" />
+  <button onclick="checkAnswer()">Check</button>
+  <p id="result"></p>
+  <a href="../index.html">🏠 Back to Home</a>
+
+  <script>
+    let num1, num2, correctAnswer;
+
+    function newQuestion() {
+      num1 = Math.floor(Math.random() * 10) + 1;
+      num2 = Math.floor(Math.random() * 10) + 1;
+      correctAnswer = num1 + num2;
+      document.getElementById("question").textContent = `What is ${num1} + ${num2} ?`;
+      document.getElementById("answer").value = "";
+      document.getElementById("result").textContent = "";
+    }
+
+    function checkAnswer() {
+      const userAnswer = parseInt(document.getElementById("answer").value);
+      const result = document.getElementById("result");
+      if (userAnswer === correctAnswer) {
+        result.textContent = "✅ Correct! Great job!";
+        setTimeout(newQuestion, 1000);
+      } else {
+        result.textContent = "❌ Oops! Try again.";
+      }
+    }
+
+    newQuestion();
+  </script>
+</body>
+</html>

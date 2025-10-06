@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typing Game</title>
+  <style>
+    body { font-family: Poppins, sans-serif; text-align: center; padding: 2rem; }
+    input { font-size: 1.2rem; padding: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Typing Game</h1>
+  <p>Type the word: <strong id="word">hello</strong></p>
+  <input type="text" id="input" placeholder="Start typing...">
+  <p id="result"></p>
+
+  <script>
+    const word = document.getElementById('word');
+    const input = document.getElementById('input');
+    const result = document.getElementById('result');
+
+    input.addEventListener('input', () => {
+      if (input.value.toLowerCase() === word.textContent.toLowerCase()) {
+        result.textContent = "✅ Correct!";
+      } else {
+        result.textContent = "";
+      }
+    });
+  </script>
+</body>
+</html>

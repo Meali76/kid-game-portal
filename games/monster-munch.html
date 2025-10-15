@@ -8,17 +8,51 @@
     <title>Monster Munch - Kids Typing Game</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        * { -webkit-tap-highlight-color: transparent; }
+        /* Custom Font and Styling */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        * { -webkit-tap-highlight-color: transparent; font-family: 'Inter', sans-serif; }
         body { touch-action: manipulation; overscroll-behavior: none; }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-        .animate-bounce { animation: bounce 1s infinite; }
-        input { font-size: 16px !important; }
+        
+        /* Monster Bounce Animation */
+        @keyframes bounce { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-12px) rotate(3deg); } }
+        .animate-monster-bounce { animation: bounce 1.2s infinite ease-in-out; }
+        
+        /* Input appearance fix for mobile */
+        input[type="text"]:not(#nameInput) { 
+            font-size: 16px !important; 
+        }
+
+        /* Success Pop */
+        @keyframes pop { 0% { transform: scale(0); opacity: 0; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+        .animate-pop { animation: pop 0.3s ease-out; }
+        
+        /* Hidden input container for reliable typing */
+        #gameInputContainer {
+            position: absolute;
+            top: -9999px; /* Move off-screen */
+            left: -9999px;
+            pointer-events: none; /* Ensure it doesn't interfere with clicks */
+        }
     </style>
 </head>
 <body class="m-0 p-0">
     <div id="app"></div>
+    
+    <!-- FIX: Keep the typing input outside the render loop for reliable focus/input on re-render -->
+    <div id="gameInputContainer">
+        <input 
+            id="gameInput" 
+            type="text" 
+            oninput="handleInput(event)" 
+            autocomplete="off"
+            autocapitalize="off"
+            value="" 
+            autofocus
+        />
+    </div>
 
     <script>
+        // Use a simple data structure for local storage persistence
         const Storage = {
             get: () => JSON.parse(localStorage.getItem('monsterMunchScores') || '[]'),
             set: (scores) => localStorage.setItem('monsterMunchScores', JSON.stringify(scores))
@@ -29,7 +63,7 @@
             score: 0,
             currentWord: '',
             userInput: '',
-            timeLeft: 30,
+            timeLeft: 0,
             gameActive: false,
             streak: 0,
             showSuccess: false,
@@ -38,6 +72,7 @@
             showNameInput: false,
             highScores: Storage.get(),
             showLeaderboard: false,
+            message: null,
             monster: ['🐱', '🐶', '🦁', '🐯', '🐸', '🦖', '🐲', '👾', '🤖', '👻'][Math.floor(Math.random() * 10)]
         };
 
@@ -50,13 +85,20 @@
         };
 
         let timer = null;
+        let gameInput = document.getElementById('gameInput');
 
         function getRandomWord() {
             const wordList = levels[state.level].words;
             return wordList[Math.floor(Math.random() * wordList.length)];
         }
 
+        function clearMessage() {
+            state.message = null;
+            render();
+        }
+        
         function startGame() {
+            // Reset state for new game
             state.score = 0;
             state.streak = 0;
             state.totalWords = 0;
@@ -65,56 +107,90 @@
             state.showNameInput = false;
             state.showLeaderboard = false;
             state.currentWord = getRandomWord();
-            state.userInput = '';
+            state.message = null; // Clear any previous messages
+            
+            // Crucial: Clear and focus the detached input element
+            state.userInput = ''; 
+            gameInput.value = ''; 
             
             clearInterval(timer);
             timer = setInterval(() => {
                 if (state.timeLeft > 0) {
                     state.timeLeft--;
-                    render();
+                    // Only re-render every second to update timer/score, not on every keystroke
+                    render(); 
                 } else {
                     clearInterval(timer);
                     state.gameActive = false;
                     state.showNameInput = true;
+                    // Ensure hidden input is blurred when game over
+                    gameInput.blur(); 
                     render();
                 }
             }, 1000);
             
             render();
-            setTimeout(() => document.getElementById('gameInput')?.focus(), 100);
+            
+            // Crucial fix: Focus the detached input element for immediate typing
+            setTimeout(() => gameInput.focus(), 150);
         }
 
         function handleInput(e) {
+            if (!state.gameActive) {
+                // If game is inactive, immediately clear input and stop processing
+                gameInput.value = '';
+                return;
+            }
+
             const value = e.target.value.toLowerCase();
             state.userInput = value;
-            render();
+            
+            // We call render *without* the gameInput field inside the template,
+            // so the display updates instantly without destroying the input element.
+            render(); 
 
             if (value === state.currentWord) {
+                // Scoring logic
                 state.score += state.currentWord.length * 10 + state.streak * 5;
                 state.streak++;
                 state.totalWords++;
+                
+                // Success feedback
                 state.showSuccess = true;
+                
+                // Get next word
                 state.currentWord = getRandomWord();
                 state.userInput = '';
+                
+                // Clear the actual input element's value (which is outside the render loop)
+                gameInput.value = '';
+                
+                // Re-render to show success feedback and new word
                 render();
                 
+                // Clear success feedback
                 setTimeout(() => {
                     state.showSuccess = false;
                     render();
                 }, 300);
                 
-                setTimeout(() => document.getElementById('gameInput')?.focus(), 50);
+                // Re-focus is not strictly necessary but helps ensure soft keyboard stays open
+                setTimeout(() => gameInput.focus(), 50);
             }
         }
 
         function saveScore() {
             if (!state.playerName.trim()) {
-                alert('Please enter your name! 😊');
+                // Replaced alert with custom state message
+                state.message = { type: 'error', text: 'Please enter a name to save your score!' };
+                render();
+                // Re-focus name input
+                setTimeout(() => document.getElementById('nameInput')?.focus(), 50);
                 return;
             }
 
             const newScore = {
-                name: state.playerName.trim(),
+                name: state.playerName.trim().substring(0, 20),
                 score: state.score,
                 level: state.level,
                 words: state.totalWords,
@@ -129,13 +205,36 @@
             state.showNameInput = false;
             state.showLeaderboard = true;
             state.playerName = '';
+            state.message = null;
             render();
         }
 
         function skipSaveScore() {
             state.showNameInput = false;
             state.playerName = '';
+            state.message = null;
+            state.showLeaderboard = true; // Show board after skip
             render();
+        }
+
+        function renderMessage() {
+            if (!state.message) return '';
+            
+            const isError = state.message.type === 'error';
+            return `
+                <div class="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center p-4 z-50">
+                    <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full animate-pop">
+                        <div class="flex items-center gap-3">
+                            <span class="text-3xl">${isError ? '⚠️' : '✅'}</span>
+                            <h3 class="text-xl font-bold ${isError ? 'text-red-600' : 'text-green-600'}">${isError ? 'Oops!' : 'Success!'}</h3>
+                        </div>
+                        <p class="text-gray-700 mt-2 mb-4">${state.message.text}</p>
+                        <button onclick="clearMessage()" class="w-full py-3 bg-purple-500 text-white rounded-xl font-bold hover:bg-purple-600 transition-colors">
+                            Got It!
+                        </button>
+                    </div>
+                </div>
+            `;
         }
 
         function render() {
@@ -143,30 +242,39 @@
             const isPlaying = state.gameActive;
             const showName = state.showNameInput;
             const showBoard = state.showLeaderboard;
+            const currentLevel = levels[state.level];
+            
+            // Get the current user input for the display mimic
+            const currentInputDisplayValue = isPlaying ? state.userInput : '';
+            
+            // Get the game input placeholder display element for focus
+            const gameInputDisplay = document.getElementById('gameInputDisplay');
 
             app.innerHTML = `
-                <div class="min-h-screen bg-gradient-to-br from-purple-400 via-pink-400 to-blue-400 p-4 flex items-center justify-center">
+                <div class="min-h-screen bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500 p-4 flex items-center justify-center">
                     <div class="max-w-2xl w-full">
-                        <div class="bg-white rounded-t-3xl p-6 shadow-lg">
+                        <!-- Header and Monster -->
+                        <div class="bg-white rounded-t-3xl p-6 shadow-xl border-b-4 border-purple-300">
                             <div class="flex justify-between items-center">
                                 <div>
-                                    <h1 class="text-4xl font-bold text-purple-600 mb-2">Monster Munch</h1>
-                                    <p class="text-gray-600">Type fast to feed the monster!</p>
+                                    <h1 class="text-4xl font-black text-purple-700 mb-1 tracking-tight">Monster Munch</h1>
+                                    <p class="text-gray-600 font-medium">${currentLevel.name} - Level ${state.level}</p>
                                 </div>
-                                <div class="text-6xl ${isPlaying ? 'animate-bounce' : ''}">${state.monster}</div>
+                                <div class="text-6xl ${isPlaying ? 'animate-monster-bounce' : ''}">${state.monster}</div>
                             </div>
                         </div>
-
+                        
+                        <!-- Level Selection Screen -->
                         ${!isPlaying && !showName && !showBoard ? `
-                        <div class="bg-white p-6 shadow-lg">
+                        <div class="bg-white p-6 shadow-xl">
                             <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
                                 ⭐ Choose Your Level
                             </h2>
-                            <div class="grid grid-cols-1 gap-3">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 ${Object.entries(levels).map(([lvl, data]) => `
                                     <button onclick="state.level = ${lvl}; render();" class="p-4 rounded-xl font-bold text-left transition-all ${
                                         state.level == lvl
-                                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg ring-4 ring-purple-300'
                                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                     }">
                                         <div class="flex justify-between items-center">
@@ -179,47 +287,50 @@
                         </div>
                         ` : ''}
 
+                        <!-- Game Playing Screen -->
                         ${isPlaying ? `
-                        <div class="bg-white p-6 shadow-lg">
-                            <div class="grid grid-cols-3 gap-4 mb-4">
-                                <div class="bg-gradient-to-br from-green-400 to-green-500 p-4 rounded-xl text-white text-center">
-                                    <div class="text-3xl font-bold">${state.score}</div>
-                                    <div class="text-sm">Score</div>
+                        <div class="bg-white p-6 shadow-xl border-b-4 border-yellow-300">
+                            <!-- Stats Bar -->
+                            <div class="grid grid-cols-3 gap-3 mb-6">
+                                <div class="bg-gradient-to-br from-green-500 to-green-600 p-3 rounded-xl text-white text-center shadow-md">
+                                    <div class="text-3xl font-extrabold">${state.score}</div>
+                                    <div class="text-xs opacity-80">SCORE</div>
                                 </div>
-                                <div class="bg-gradient-to-br from-orange-400 to-red-500 p-4 rounded-xl text-white text-center">
-                                    <div class="text-3xl font-bold">${state.timeLeft}</div>
-                                    <div class="text-sm">Time</div>
+                                <div class="bg-gradient-to-br from-red-500 to-red-600 p-3 rounded-xl text-white text-center shadow-md">
+                                    <div class="text-3xl font-extrabold">${state.timeLeft}s</div>
+                                    <div class="text-xs opacity-80">TIME LEFT</div>
                                 </div>
-                                <div class="bg-gradient-to-br from-blue-400 to-purple-500 p-4 rounded-xl text-white text-center">
-                                    <div class="text-3xl font-bold">${state.streak}</div>
-                                    <div class="text-sm">Streak 🔥</div>
+                                <div class="bg-gradient-to-br from-blue-500 to-purple-600 p-3 rounded-xl text-white text-center shadow-md">
+                                    <div class="text-3xl font-extrabold">${state.streak}</div>
+                                    <div class="text-xs opacity-80">STREAK 🔥</div>
                                 </div>
                             </div>
 
-                            <div class="bg-gradient-to-r ${state.showSuccess ? 'from-green-300 to-green-400' : 'from-yellow-200 to-yellow-300'} p-8 rounded-2xl text-center mb-4 transition-all">
-                                <div class="text-5xl font-bold text-gray-800 mb-2 tracking-wider">
+                            <!-- Word Display -->
+                            <div class="bg-gradient-to-r ${state.showSuccess ? 'from-lime-300 to-lime-400' : 'from-yellow-200 to-yellow-300'} p-8 rounded-2xl text-center mb-6 transition-all shadow-inner">
+                                <div class="text-7xl font-black text-gray-800 tracking-widest uppercase">
                                     ${state.currentWord}
                                 </div>
-                                <div class="text-sm text-gray-600">Type this word!</div>
+                                <div class="text-sm text-gray-600 mt-2">Feed the monster by typing the word above!</div>
                             </div>
 
-                            <input
-                                id="gameInput"
-                                type="text"
-                                value="${state.userInput}"
-                                oninput="handleInput(event)"
-                                class="w-full p-6 text-3xl text-center border-4 border-purple-400 rounded-2xl focus:outline-none focus:border-purple-600 font-bold"
-                                placeholder="Type here..."
-                                autocomplete="off"
-                                autocapitalize="off"
-                            />
+                            <!-- Game Input Display (This mimics the input but is NOT the real input element) -->
+                            <div 
+                                id="gameInputDisplay"
+                                onclick="gameInput.focus()"
+                                class="w-full p-5 text-3xl text-center border-4 border-purple-500 rounded-2xl focus:outline-none focus:border-purple-700 font-extrabold shadow-md cursor-text bg-white"
+                                style="min-height: 70px;"
+                            >
+                                ${currentInputDisplayValue || '<span class="text-gray-400">Type here...</span>'}
+                            </div>
 
+                            <!-- Accuracy Display -->
                             ${state.userInput ? `
-                            <div class="mt-4 text-center">
+                            <div class="mt-4 text-center p-3 bg-gray-50 rounded-xl shadow-sm border border-gray-200">
                                 ${state.currentWord.split('').map((letter, idx) => `
-                                    <span class="text-2xl font-bold ${
-                                        state.userInput[idx] === letter ? 'text-green-500' :
-                                        state.userInput[idx] ? 'text-red-500' : 'text-gray-300'
+                                    <span class="text-3xl font-bold mx-0.5 transition-colors ${
+                                        state.userInput[idx] === letter ? 'text-green-600' :
+                                        state.userInput[idx] ? 'text-red-600 border-b-2 border-red-600' : 'text-gray-400'
                                     }">${letter}</span>
                                 `).join('')}
                             </div>
@@ -227,113 +338,136 @@
                         </div>
                         ` : ''}
 
-                        <div class="bg-white rounded-b-3xl p-6 shadow-lg">
-                            ${showName ? `
-                            <div class="text-center mb-6">
-                                <div class="text-6xl mb-4">🎉</div>
-                                <h2 class="text-3xl font-bold text-purple-600 mb-4">Great Job!</h2>
-                                <p class="text-5xl font-bold text-gray-800 mb-2">${state.score} points</p>
-                                <p class="text-gray-600 mb-6">Total Words: ${state.totalWords} | Best Streak: ${state.streak} 🔥</p>
-                                
-                                <div class="max-w-md mx-auto mb-4">
-                                    <label class="block text-left text-gray-700 font-bold mb-2">
-                                        Enter your name to save your score:
-                                    </label>
-                                    <input
-                                        id="nameInput"
-                                        type="text"
-                                        value="${state.playerName}"
-                                        oninput="state.playerName = this.value"
-                                        onkeypress="if(event.key==='Enter') saveScore()"
-                                        class="w-full p-4 text-xl border-4 border-purple-400 rounded-xl focus:outline-none focus:border-purple-600 font-bold text-center"
-                                        placeholder="Your name..."
-                                        maxlength="20"
-                                    />
-                                </div>
-
-                                <div class="flex gap-3 justify-center">
-                                    <button onclick="saveScore()" class="px-8 py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-lg hover:scale-105 transition-all shadow-lg">
-                                        💾 Save Score
-                                    </button>
-                                    <button onclick="skipSaveScore()" class="px-8 py-4 bg-gray-300 text-gray-700 rounded-xl font-bold text-lg hover:bg-gray-400 transition-all">
-                                        Skip
-                                    </button>
-                                </div>
+                        <!-- Name Input (Game Over) -->
+                        ${showName ? `
+                        <div class="bg-white p-8 shadow-xl border-b-4 border-red-400 text-center">
+                            <div class="text-6xl mb-4 animate-pop">🥳</div>
+                            <h2 class="text-4xl font-black text-purple-700 mb-2">Game Over!</h2>
+                            <p class="text-5xl font-extrabold text-gray-800 mb-4">${state.score} points</p>
+                            <p class="text-gray-600 mb-6">You typed **${state.totalWords} words** on Level **${state.level}**!</p>
+                            
+                            <div class="max-w-md mx-auto mb-6">
+                                <label for="nameInput" class="block text-left text-gray-700 font-bold mb-2 text-lg">
+                                    Enter your name to save your score:
+                                </label>
+                                <input
+                                    id="nameInput"
+                                    type="text"
+                                    value="${state.playerName}"
+                                    oninput="state.playerName = this.value; clearMessage();"
+                                    onkeypress="if(event.key==='Enter') saveScore()"
+                                    class="w-full p-4 text-2xl border-4 border-pink-400 rounded-xl focus:outline-none focus:border-pink-600 font-bold text-center shadow-md"
+                                    placeholder="Your Awesome Name..."
+                                    maxlength="20"
+                                    autofocus
+                                />
                             </div>
-                            ` : ''}
 
-                            ${showBoard ? `
-                            <div class="mb-6">
-                                <h2 class="text-3xl font-bold text-purple-600 mb-4 text-center flex items-center justify-center gap-2">
-                                    🏆 Top Scores
-                                </h2>
-                                <div class="space-y-2 mb-6">
-                                    ${state.highScores.length === 0 ? `
-                                        <p class="text-center text-gray-500 py-8">No scores yet. Be the first! 🌟</p>
-                                    ` : state.highScores.map((entry, idx) => `
-                                        <div class="p-4 rounded-xl flex items-center justify-between ${
-                                            idx === 0 ? 'bg-gradient-to-r from-yellow-300 to-yellow-400' :
-                                            idx === 1 ? 'bg-gradient-to-r from-gray-300 to-gray-400' :
-                                            idx === 2 ? 'bg-gradient-to-r from-orange-300 to-orange-400' : 'bg-gray-100'
-                                        }">
-                                            <div class="flex items-center gap-4">
-                                                <span class="text-2xl font-bold w-8">
-                                                    ${idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`}
-                                                </span>
-                                                <div>
-                                                    <div class="font-bold text-lg">${entry.name}</div>
-                                                    <div class="text-sm text-gray-600">
-                                                        Level ${entry.level} • ${entry.words} words • ${entry.date}
-                                                    </div>
+                            <div class="flex gap-4 justify-center">
+                                <button onclick="saveScore()" class="flex-1 py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-bold text-xl hover:scale-105 transition-all shadow-lg max-w-[200px]">
+                                    💾 Save Score
+                                </button>
+                                <button onclick="skipSaveScore()" class="flex-1 py-4 bg-gray-300 text-gray-700 rounded-xl font-bold text-xl hover:bg-gray-400 transition-all max-w-[150px]">
+                                    Skip
+                                </button>
+                            </div>
+                        </div>
+                        ` : ''}
+
+                        <!-- Leaderboard Screen -->
+                        ${showBoard ? `
+                        <div class="bg-white p-6 shadow-xl border-b-4 border-yellow-400">
+                            <h2 class="text-3xl font-black text-purple-700 mb-4 text-center flex items-center justify-center gap-3">
+                                🏆 Top Munchers
+                            </h2>
+                            <div class="space-y-3 mb-6">
+                                ${state.highScores.length === 0 ? `
+                                    <p class="text-center text-gray-500 py-8 text-lg">No scores yet. Start the game and be the first to climb the board! 🌟</p>
+                                ` : state.highScores.map((entry, idx) => `
+                                    <div class="p-4 rounded-xl flex items-center justify-between transition-shadow shadow-md ${
+                                        idx === 0 ? 'bg-gradient-to-r from-yellow-200 to-yellow-300 text-yellow-800 border-2 border-yellow-400' :
+                                        idx === 1 ? 'bg-gray-100 text-gray-700 border-2 border-gray-300' :
+                                        idx === 2 ? 'bg-orange-100 text-orange-700 border-2 border-orange-300' : 'bg-gray-50 text-gray-700'
+                                    }">
+                                        <div class="flex items-center gap-4">
+                                            <span class="text-2xl font-black w-8 text-center">
+                                                ${idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`}
+                                            </span>
+                                            <div>
+                                                <div class="font-bold text-xl">${entry.name}</div>
+                                                <div class="text-sm text-gray-500">
+                                                    Lvl ${entry.level} • ${entry.words} words
                                                 </div>
                                             </div>
-                                            <div class="text-2xl font-bold text-purple-600">${entry.score}</div>
                                         </div>
-                                    `).join('')}
-                                </div>
+                                        <div class="text-3xl font-black text-purple-600">${entry.score}</div>
+                                    </div>
+                                `).join('')}
                             </div>
-                            ` : ''}
+                        </div>
+                        ` : ''}
 
-                            <div class="flex gap-3">
-                                <button onclick="startGame()" ${isPlaying ? 'disabled' : ''} class="flex-1 py-6 rounded-2xl font-bold text-2xl transition-all ${
-                                    isPlaying ? 'bg-gray-300 text-gray-500 cursor-not-allowed' :
-                                    'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:scale-105 shadow-lg'
+                        <!-- Footer Buttons & Info (Always Rendered on Start/End Screens) -->
+                        <div class="bg-white rounded-b-3xl p-6 shadow-xl border-t-4 border-gray-100">
+                            <div class="flex gap-4">
+                                <button onclick="startGame()" ${isPlaying ? 'disabled' : ''} class="flex-1 py-4 rounded-xl font-black text-xl transition-all shadow-lg ${
+                                    isPlaying ? 'bg-gray-400 text-gray-100 cursor-not-allowed' :
+                                    'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:scale-[1.02]'
                                 }">
                                     ${isPlaying ? '🎮 Playing...' : state.timeLeft === 0 || showBoard ? '🔄 Play Again' : '▶️ Start Game'}
                                 </button>
                                 
                                 ${!isPlaying && state.highScores.length > 0 && !showBoard ? `
-                                    <button onclick="state.showLeaderboard = true; render();" class="px-6 py-6 bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-2xl font-bold text-xl hover:scale-105 transition-all shadow-lg">
-                                        🏆
+                                    <button onclick="state.showLeaderboard = true; render();" class="px-6 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-xl font-bold text-xl hover:scale-105 transition-all shadow-lg">
+                                        🏆 Scores
+                                    </button>
+                                ` : ''}
+
+                                ${!isPlaying && showBoard ? `
+                                    <button onclick="state.showLeaderboard = false; render();" class="px-6 py-4 bg-gray-200 text-gray-700 rounded-xl font-bold text-xl hover:scale-105 transition-all shadow-md">
+                                        Level
                                     </button>
                                 ` : ''}
                             </div>
                         </div>
 
+                        <!-- How to Play Info (Initial Screen) -->
                         ${!isPlaying && !showName && !showBoard && state.timeLeft !== 0 ? `
-                        <div class="bg-white rounded-3xl p-6 mt-4 shadow-lg">
-                            <h3 class="text-xl font-bold text-gray-800 mb-3 flex items-center gap-2">
-                                ⚡ How to Play
+                        <div class="bg-white rounded-3xl p-6 mt-4 shadow-xl border-4 border-gray-100">
+                            <h3 class="text-xl font-black text-gray-800 mb-3 flex items-center gap-2">
+                                💡 How to Play
                             </h3>
-                            <ul class="space-y-2 text-gray-700">
-                                <li>✨ Type the word shown on screen</li>
-                                <li>⚡ Type fast to beat the timer</li>
-                                <li>🔥 Build streaks for bonus points</li>
-                                <li>🎯 Longer words = more points</li>
-                                <li>🏆 Try all 5 levels from easy to ultimate!</li>
+                            <ul class="space-y-2 text-gray-700 list-disc list-inside">
+                                <li>Type the word shown on screen. The word automatically completes when you finish typing it.</li>
+                                <li>Tap the "Type here..." box to ensure your keyboard is active.</li>
+                                <li>Build **streaks** for bonus points!</li>
                             </ul>
                         </div>
                         ` : ''}
                     </div>
                 </div>
+                ${renderMessage()}
             `;
 
+            // If the game is active, ensure the focus is still on the hidden input.
+            if (isPlaying) {
+                // If the user clicks the visual display, refocus the hidden input
+                document.getElementById('gameInputDisplay')?.addEventListener('click', () => {
+                    gameInput.focus();
+                });
+            }
+            
+            // Re-focus the visible name input when game is over
             if (showName) {
-                setTimeout(() => document.getElementById('nameInput')?.focus(), 100);
+                setTimeout(() => document.getElementById('nameInput')?.focus(), 150);
             }
         }
 
-        render();
+        // Initialize on load and re-assign gameInput
+        document.addEventListener('DOMContentLoaded', () => {
+            gameInput = document.getElementById('gameInput');
+            render();
+        });
     </script>
 </body>
 </html>

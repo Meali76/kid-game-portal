@@ -3,30 +3,157 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Typing Game</title>
+  <title>Typing Challenge | GameVerse</title>
+  <link rel="stylesheet" href="style.css">
   <style>
-    body { font-family: Poppins, sans-serif; text-align: center; padding: 2rem; }
-    input { font-size: 1.2rem; padding: 5px; }
+    .typing-container {
+      max-width: 600px;
+      margin: 120px auto;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
+    }
+
+    .typing-container h2 {
+      color: #00ffff;
+      margin-bottom: 20px;
+      font-size: 1.8rem;
+    }
+
+    .word {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #fff;
+      margin: 20px 0;
+    }
+
+    input[type="text"] {
+      padding: 10px 20px;
+      font-size: 1rem;
+      border-radius: 30px;
+      border: none;
+      outline: none;
+      width: 80%;
+      text-align: center;
+    }
+
+    .score, .level {
+      margin: 15px 0;
+      font-weight: 500;
+      color: #ccc;
+    }
+
+    .btn-restart {
+      margin-top: 20px;
+      display: inline-block;
+      background: #00ffff;
+      color: #0a0a0f;
+      padding: 10px 25px;
+      border-radius: 25px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .btn-restart:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 10px #00ffff;
+    }
   </style>
 </head>
 <body>
-  <h1>Typing Game</h1>
-  <p>Type the word: <strong id="word">hello</strong></p>
-  <input type="text" id="input" placeholder="Start typing...">
-  <p id="result"></p>
+
+  <header class="navbar">
+    <div class="logo">🎮 GameVerse</div>
+    <nav>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="#typing">Typing Challenge</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section class="typing-container">
+    <h2>Typing Challenge</h2>
+    <p class="level">Level: <span id="level">1 (Easy)</span></p>
+    <div class="word" id="current-word">Loading...</div>
+    <input type="text" id="word-input" placeholder="Type the word here..." autofocus />
+    <p class="score">Score: <span id="score">0</span></p>
+    <p id="message"></p>
+    <div class="btn-restart" id="restart-btn" style="display: none;">Restart</div>
+  </section>
 
   <script>
-    const word = document.getElementById('word');
-    const input = document.getElementById('input');
-    const result = document.getElementById('result');
+    const wordInput = document.getElementById('word-input');
+    const currentWord = document.getElementById('current-word');
+    const scoreDisplay = document.getElementById('score');
+    const message = document.getElementById('message');
+    const levelDisplay = document.getElementById('level');
+    const restartBtn = document.getElementById('restart-btn');
 
-    input.addEventListener('input', () => {
-      if (input.value.toLowerCase() === word.textContent.toLowerCase()) {
-        result.textContent = "✅ Correct!";
-      } else {
-        result.textContent = "";
+    // Word lists by level
+    const levels = {
+      1: ['cat', 'sun', 'dog', 'car', 'pen', 'map', 'cup', 'hat', 'box', 'fan'],
+      2: ['planet', 'rocket', 'jungle', 'castle', 'guitar', 'pencil', 'window', 'school', 'purple', 'forest'],
+      3: ['adventure', 'challenge', 'galaxy', 'mystery', 'education', 'champion', 'infinity', 'lightning', 'incredible', 'destination']
+    };
+
+    let currentLevel = 1;
+    let words = [...levels[currentLevel]];
+    let score = 0;
+
+    function startGame() {
+      score = 0;
+      currentLevel = 1;
+      levelDisplay.textContent = '1 (Easy)';
+      words = [...levels[currentLevel]];
+      nextWord();
+      scoreDisplay.textContent = score;
+      message.textContent = '';
+      restartBtn.style.display = 'none';
+    }
+
+    function nextWord() {
+      const randomIndex = Math.floor(Math.random() * words.length);
+      currentWord.textContent = words[randomIndex];
+      wordInput.value = '';
+      wordInput.focus();
+    }
+
+    function levelUp() {
+      currentLevel++;
+      if (currentLevel > 3) {
+        message.textContent = '🏆 You completed all levels!';
+        restartBtn.style.display = 'inline-block';
+        currentWord.textContent = '🎉';
+        return;
+      }
+      words = [...levels[currentLevel]];
+      levelDisplay.textContent =
+        currentLevel === 2 ? '2 (Medium)' : '3 (Hard)';
+      message.textContent = `🚀 Level ${currentLevel} unlocked!`;
+      nextWord();
+    }
+
+    wordInput.addEventListener('input', () => {
+      if (wordInput.value.toLowerCase() === currentWord.textContent.toLowerCase()) {
+        score++;
+        scoreDisplay.textContent = score;
+        if (score === 10) levelUp();
+        else if (score === 20) levelUp();
+        nextWord();
+        message.textContent = '✅ Correct!';
+        setTimeout(() => (message.textContent = ''), 800);
       }
     });
+
+    restartBtn.addEventListener('click', startGame);
+
+    // Start on load
+    window.addEventListener('load', startGame);
   </script>
 </body>
 </html>
+

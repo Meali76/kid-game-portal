@@ -1,0 +1,226 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Smile, Trophy, Star, Zap } from 'lucide-react';
+
+const MonsterMunchGame = () => {
+  const [level, setLevel] = useState(1);
+  const [score, setScore] = useState(0);
+  const [currentWord, setCurrentWord] = useState('');
+  const [userInput, setUserInput] = useState('');
+  const [timeLeft, setTimeLeft] = useState(30);
+  const [gameActive, setGameActive] = useState(false);
+  const [streak, setStreak] = useState(0);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [totalWords, setTotalWords] = useState(0);
+  const inputRef = useRef(null);
+
+  const levels = {
+    1: { name: 'Baby Monster', words: ['cat', 'dog', 'sun', 'cup', 'car', 'hat', 'pig', 'bus', 'egg', 'bat'], time: 30 },
+    2: { name: 'Tiny Terror', words: ['apple', 'happy', 'pizza', 'smile', 'bunny', 'jelly', 'robot', 'tiger', 'music', 'super'], time: 25 },
+    3: { name: 'Growing Goblin', words: ['dinosaur', 'elephant', 'birthday', 'computer', 'backpack', 'colorful', 'treasure', 'adventure'], time: 25 },
+    4: { name: 'Mega Monster', words: ['incredible', 'wonderful', 'adventure', 'delicious', 'mysterious', 'spectacular', 'playground', 'skateboard'], time: 20 },
+    5: { name: 'Ultimate Beast', words: ['extraordinary', 'enthusiastic', 'magnificent', 'unbelievable', 'neighborhood', 'imagination', 'kaleidoscope'], time: 20 }
+  };
+
+  const getRandomWord = () => {
+    const wordList = levels[level].words;
+    return wordList[Math.floor(Math.random() * wordList.length)];
+  };
+
+  useEffect(() => {
+    if (gameActive && timeLeft > 0) {
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearTimeout(timer);
+    } else if (timeLeft === 0) {
+      setGameActive(false);
+    }
+  }, [timeLeft, gameActive]);
+
+  useEffect(() => {
+    if (gameActive && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [gameActive, currentWord]);
+
+  const startGame = () => {
+    setScore(0);
+    setStreak(0);
+    setTotalWords(0);
+    setTimeLeft(levels[level].time);
+    setGameActive(true);
+    setCurrentWord(getRandomWord());
+    setUserInput('');
+  };
+
+  const handleInput = (e) => {
+    const value = e.target.value.toLowerCase();
+    setUserInput(value);
+
+    if (value === currentWord) {
+      setScore(score + currentWord.length * 10 + streak * 5);
+      setStreak(streak + 1);
+      setTotalWords(totalWords + 1);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 300);
+      setCurrentWord(getRandomWord());
+      setUserInput('');
+    }
+  };
+
+  const getMonsterEmoji = () => {
+    const monsters = ['🐱', '🐶', '🦁', '🐯', '🐸', '🦖', '🐲', '👾', '🤖', '👻'];
+    return monsters[Math.floor(Math.random() * monsters.length)];
+  };
+
+  const [monster] = useState(getMonsterEmoji());
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-400 via-pink-400 to-blue-400 p-4 flex items-center justify-center">
+      <div className="max-w-2xl w-full">
+        {/* Header */}
+        <div className="bg-white rounded-t-3xl p-6 shadow-lg">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-4xl font-bold text-purple-600 mb-2">Monster Munch</h1>
+              <p className="text-gray-600">Type fast to feed the monster!</p>
+            </div>
+            <div className="text-6xl animate-bounce">{monster}</div>
+          </div>
+        </div>
+
+        {/* Level Selector */}
+        {!gameActive && (
+          <div className="bg-white p-6 shadow-lg">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <Star className="text-yellow-500" />
+              Choose Your Level
+            </h2>
+            <div className="grid grid-cols-1 gap-3">
+              {Object.entries(levels).map(([lvl, data]) => (
+                <button
+                  key={lvl}
+                  onClick={() => setLevel(Number(lvl))}
+                  className={`p-4 rounded-xl font-bold text-left transition-all ${
+                    level === Number(lvl)
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white scale-105 shadow-lg'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <div className="flex justify-between items-center">
+                    <span>Level {lvl}: {data.name}</span>
+                    <span className="text-sm">⏱️ {data.time}s</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Game Stats */}
+        {gameActive && (
+          <div className="bg-white p-6 shadow-lg">
+            <div className="grid grid-cols-3 gap-4 mb-4">
+              <div className="bg-gradient-to-br from-green-400 to-green-500 p-4 rounded-xl text-white text-center">
+                <div className="text-3xl font-bold">{score}</div>
+                <div className="text-sm">Score</div>
+              </div>
+              <div className="bg-gradient-to-br from-orange-400 to-red-500 p-4 rounded-xl text-white text-center">
+                <div className="text-3xl font-bold">{timeLeft}</div>
+                <div className="text-sm">Time</div>
+              </div>
+              <div className="bg-gradient-to-br from-blue-400 to-purple-500 p-4 rounded-xl text-white text-center">
+                <div className="text-3xl font-bold">{streak}</div>
+                <div className="text-sm">Streak 🔥</div>
+              </div>
+            </div>
+
+            {/* Word Display */}
+            <div className={`bg-gradient-to-r from-yellow-200 to-yellow-300 p-8 rounded-2xl text-center mb-4 transition-all ${
+              showSuccess ? 'scale-110 bg-gradient-to-r from-green-300 to-green-400' : ''
+            }`}>
+              <div className="text-5xl font-bold text-gray-800 mb-2 tracking-wider">
+                {currentWord}
+              </div>
+              <div className="text-sm text-gray-600">Type this word!</div>
+            </div>
+
+            {/* Input */}
+            <input
+              ref={inputRef}
+              type="text"
+              value={userInput}
+              onChange={handleInput}
+              className="w-full p-6 text-3xl text-center border-4 border-purple-400 rounded-2xl focus:outline-none focus:border-purple-600 font-bold"
+              placeholder="Type here..."
+              autoComplete="off"
+              autoCapitalize="off"
+            />
+
+            {/* Visual feedback */}
+            {userInput && (
+              <div className="mt-4 text-center">
+                {currentWord.split('').map((letter, idx) => (
+                  <span
+                    key={idx}
+                    className={`text-2xl font-bold ${
+                      userInput[idx] === letter
+                        ? 'text-green-500'
+                        : userInput[idx]
+                        ? 'text-red-500'
+                        : 'text-gray-300'
+                    }`}
+                  >
+                    {letter}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Game Over / Start Screen */}
+        <div className="bg-white rounded-b-3xl p-6 shadow-lg">
+          {!gameActive && timeLeft === 0 && (
+            <div className="text-center mb-6">
+              <Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-4" />
+              <h2 className="text-3xl font-bold text-purple-600 mb-2">Game Over!</h2>
+              <p className="text-5xl font-bold text-gray-800 mb-2">{score}</p>
+              <p className="text-gray-600 mb-2">Total Words: {totalWords}</p>
+              <p className="text-gray-600">Best Streak: {streak} 🔥</p>
+            </div>
+          )}
+
+          <button
+            onClick={startGame}
+            disabled={gameActive}
+            className={`w-full py-6 rounded-2xl font-bold text-2xl transition-all ${
+              gameActive
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:scale-105 shadow-lg'
+            }`}
+          >
+            {gameActive ? '🎮 Playing...' : timeLeft === 0 ? '🔄 Play Again' : '▶️ Start Game'}
+          </button>
+        </div>
+
+        {/* Instructions */}
+        {!gameActive && timeLeft !== 0 && (
+          <div className="bg-white rounded-3xl p-6 mt-4 shadow-lg">
+            <h3 className="text-xl font-bold text-gray-800 mb-3 flex items-center gap-2">
+              <Zap className="text-yellow-500" />
+              How to Play
+            </h3>
+            <ul className="space-y-2 text-gray-700">
+              <li>✨ Type the word shown on screen</li>
+              <li>⚡ Type fast to beat the timer</li>
+              <li>🔥 Build streaks for bonus points</li>
+              <li>🎯 Longer words = more points</li>
+              <li>🏆 Try all 5 levels from easy to ultimate!</li>
+            </ul>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default MonsterMunchGame;

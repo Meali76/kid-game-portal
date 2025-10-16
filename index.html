@@ -17,6 +17,10 @@
         .card-shadow {
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
+        /* Fix for scroll-to-top when using anchor links */
+        html {
+            scroll-behavior: smooth;
+        }
     </style>
 </head>
 <body class="min-h-screen antialiased">
@@ -24,21 +28,24 @@
     <!-- Header & Navigation -->
     <header class="sticky top-0 z-10 bg-white shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <!-- Logo/Title -->
-            <a href="#home" class="text-3xl font-extrabold text-blue-600 hover:text-blue-800 transition duration-300">
+            <!-- Logo/Title. The link href="#" will ensure it resets to the top of the page. -->
+            <a href="#" class="text-3xl font-extrabold text-blue-600 hover:text-blue-800 transition duration-300">
                 <span class="inline-block transform hover:rotate-6 transition duration-300">🎉</span> Kids Game Portal
             </a>
             <!-- Navigation Links -->
             <nav class="space-x-4 md:space-x-8 text-lg font-semibold hidden sm:flex">
+                <!-- Home link is now set to #home (pointing to the Hero section ID) -->
                 <a href="#home" class="text-gray-700 hover:text-blue-600 transition duration-200 p-2 rounded-lg">Home</a>
                 <a href="#games" class="text-gray-700 hover:text-blue-600 transition duration-200 p-2 rounded-lg">Games</a>
-                <a href="#about" class="text-gray-700 hover:text-blue-600 transition duration-200 p-2 rounded-lg">About</a>
+                <!-- About link is now set to #about-us (pointing to the new About section ID) -->
+                <a href="#about-us" class="text-gray-700 hover:text-blue-600 transition duration-200 p-2 rounded-lg">About</a>
             </nav>
         </div>
     </header>
 
-    <!-- Hero Section -->
-    <section id="hero" class="py-16 md:py-24 text-center bg-yellow-400 bg-opacity-70">
+    <!-- 1. Home / Hero Section (The primary landing view) -->
+    <!-- I've added id="home" here, so the 'Home' link snaps directly to this section. -->
+    <section id="home" class="py-16 md:py-24 text-center bg-yellow-400 bg-opacity-70">
         <div class="max-w-4xl mx-auto px-4">
             <h2 class="text-4xl sm:text-6xl font-black text-gray-900 mb-4 leading-tight">
                 Fun & Learning Games for Kids!
@@ -52,12 +59,26 @@
         </div>
     </section>
 
-    <!-- Games List Section -->
+    <!-- 2. Games List Section -->
     <section id="games" class="py-16 md:py-20 bg-gray-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h3 class="text-4xl font-extrabold text-gray-800 text-center mb-12">
                 🎯 Our Featured Games
             </h3>
+            
+            <!-- New: Game Search Bar -->
+            <div class="mb-12 max-w-lg mx-auto">
+                <label for="game-search" class="sr-only">Search Games</label>
+                <div class="relative shadow-md rounded-full">
+                    <input type="text" id="game-search" placeholder="Search for a game..." 
+                           class="w-full p-4 pl-12 pr-6 border-4 border-blue-400 rounded-full text-lg focus:outline-none focus:border-blue-600 transition duration-200"
+                           aria-label="Search for games">
+                    <!-- Simple Search Icon (Inline SVG for consistency) -->
+                    <svg class="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+            </div>
+            <!-- /Game Search Bar -->
+
 
             <!-- Games Container (Responsive Grid) -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -89,6 +110,13 @@
                     <h4 class="text-xl font-bold text-gray-800 mb-1">Monster Munch</h4>
                     <p class="text-sm text-gray-500">An arcade eating adventure!</p>
                 </a>
+
+                <!-- NEW Game Card: Tic Tac Toe -->
+                <a href="games/tic-tac-toe.html" class="game-card block bg-white rounded-2xl p-6 text-center card-shadow hover:shadow-xl transform hover:-translate-y-1 transition duration-300 border-b-4 border-orange-500 hover:border-orange-600">
+                    <div class="text-5xl mb-3">❌</div>
+                    <h4 class="text-xl font-bold text-gray-800 mb-1">Tic Tac Toe</h4>
+                    <p class="text-sm text-gray-500">The classic strategy game!</p>
+                </a>
                 
             </div>
             <!-- /Games Container -->
@@ -96,14 +124,29 @@
         </div>
     </section>
 
-    <!-- Footer / About Section -->
-    <footer id="about" class="bg-gray-800 py-6">
+    <!-- 3. New About Us Section -->
+    <!-- This section is the new target for the 'About' link in the navigation. -->
+    <section id="about-us" class="py-16 md:py-20 bg-white border-t border-gray-200">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h3 class="text-4xl font-extrabold text-blue-600 mb-6">
+                📚 Why Choose Our Portal?
+            </h3>
+            <p class="text-lg text-gray-700 mb-4">
+                We believe learning should be an adventure! Our games are hand-picked and designed by educators and parents to be 100% safe, ad-free, and educational. We focus on key skills like literacy, numeracy, and problem-solving, all wrapped up in fun, colorful packages your child will love.
+            </p>
+            <p class="text-lg text-gray-700 font-semibold">
+                Join our mission to make screen time count!
+            </p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="footer" class="bg-gray-800 py-6">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white text-sm font-light">
             <p>Made with <span class="text-red-500">❤️</span> for kids. &copy; 2024 Kids Game Portal.</p>
             <p class="mt-1">Thanks for stopping by!</p>
         </div>
     </footer>
 
-    <!-- Note: Your original script.js inclusion is removed since this is a static page rewrite, but you can add game logic here if needed. -->
 </body>
 </html>

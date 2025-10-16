@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe for Kids</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .mode-selection {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .mode-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 1.3em;
+            font-family: 'Comic Sans MS', cursive;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .input-group {
+            margin: 20px 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            font-size: 1em;
+            font-family: 'Comic Sans MS', cursive;
+        }
+
+        .difficulty-group {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .difficulty-btn {
+            flex: 1;
+            padding: 15px;
+            border: 3px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 10px;
+            font-size: 1em;
+            font-family: 'Comic Sans MS', cursive;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .difficulty-btn.selected {
+            background: #667eea;
+            color: white;
+        }
+
+        .start-btn, .restart-btn, .back-btn {
+            width: 100%;
+            padding: 15px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.2em;
+            font-family: 'Comic Sans MS', cursive;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .back-btn {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+        }
+
+        .start-btn:hover, .restart-btn:hover, .back-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .game-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .current-player {
+            font-size: 1.5em;
+            color: #667eea;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 15px;
+        }
+
+        .score {
+            text-align: center;
+        }
+
+        .score-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .score-value {
+            font-size: 1.5em;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 15px;
+            font-size: 3em;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .cell:hover:not(.taken) {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .cell.taken {
+            cursor: not-allowed;
+        }
+
+        .cell.x {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .cell.o {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .message {
+            text-align: center;
+            font-size: 1.5em;
+            color: #667eea;
+            font-weight: bold;
+            margin: 20px 0;
+            min-height: 40px;
+        }
+
+        .winner {
+            animation: bounce 0.5s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Tic Tac Toe 🎮</h1>
+
+        <!-- Mode Selection Screen -->
+        <div id="modeScreen" class="screen active">
+            <div class="mode-selection">
+                <button class="mode-btn" onclick="selectMode('player')">
+                    👥 Play with Friend
+                </button>
+                <button class="mode-btn" onclick="selectMode('computer')">
+                    🤖 Play with Computer
+                </button>
+            </div>
+        </div>
+
+        <!-- Player Setup Screen -->
+        <div id="playerSetupScreen" class="screen">
+            <div class="input-group">
+                <label for="player1Name">Player 1 Name (X):</label>
+                <input type="text" id="player1Name" placeholder="Enter name" maxlength="15">
+            </div>
+            <div class="input-group">
+                <label for="player2Name">Player 2 Name (O):</label>
+                <input type="text" id="player2Name" placeholder="Enter name" maxlength="15">
+            </div>
+            <button class="start-btn" onclick="startGame()">Start Game!</button>
+            <button class="back-btn" onclick="goBack()">Back</button>
+        </div>
+
+        <!-- Computer Setup Screen -->
+        <div id="computerSetupScreen" class="screen">
+            <div class="input-group">
+                <label for="playerName">Your Name:</label>
+                <input type="text" id="playerName" placeholder="Enter your name" maxlength="15">
+            </div>
+            <div class="input-group">
+                <label>Choose Difficulty:</label>
+                <div class="difficulty-group">
+                    <button class="difficulty-btn selected" onclick="selectDifficulty('easy')">😊 Easy</button>
+                    <button class="difficulty-btn" onclick="selectDifficulty('hard')">😈 Hard</button>
+                </div>
+            </div>
+            <button class="start-btn" onclick="startGame()">Start Game!</button>
+            <button class="back-btn" onclick="goBack()">Back</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="gameScreen" class="screen">
+            <div class="score-board">
+                <div class="score">
+                    <div class="score-label" id="p1Label">Player 1</div>
+                    <div class="score-value" id="p1Score">0</div>
+                </div>
+                <div class="score">
+                    <div class="score-label">Draws</div>
+                    <div class="score-value" id="drawScore">0</div>
+                </div>
+                <div class="score">
+                    <div class="score-label" id="p2Label">Player 2</div>
+                    <div class="score-value" id="p2Score">0</div>
+                </div>
+            </div>
+
+            <div class="current-player" id="currentPlayer">Player 1's Turn (X)</div>
+            
+            <div class="board" id="board">
+                <button class="cell" onclick="makeMove(0)"></button>
+                <button class="cell" onclick="makeMove(1)"></button>
+                <button class="cell" onclick="makeMove(2)"></button>
+                <button class="cell" onclick="makeMove(3)"></button>
+                <button class="cell" onclick="makeMove(4)"></button>
+                <button class="cell" onclick="makeMove(5)"></button>
+                <button class="cell" onclick="makeMove(6)"></button>
+                <button class="cell" onclick="makeMove(7)"></button>
+                <button class="cell" onclick="makeMove(8)"></button>
+            </div>
+
+            <div class="message" id="message"></div>
+
+            <button class="restart-btn" onclick="restartRound()">Play Again</button>
+            <button class="back-btn" onclick="backToMenu()">Main Menu</button>
+        </div>
+    </div>
+
+    <script>
+        let gameState = {
+            mode: '',
+            player1: '',
+            player2: '',
+            difficulty: 'easy',
+            board: ['', '', '', '', '', '', '', '', ''],
+            currentPlayer: 'X',
+            gameActive: true,
+            scores: { p1: 0, p2: 0, draw: 0 }
+        };
+
+        const winPatterns = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],
+            [0, 3, 6], [1, 4, 7], [2, 5, 8],
+            [0, 4, 8], [2, 4, 6]
+        ];
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function selectMode(mode) {
+            gameState.mode = mode;
+            if (mode === 'player') {
+                showScreen('playerSetupScreen');
+            } else {
+                showScreen('computerSetupScreen');
+            }
+        }
+
+        function selectDifficulty(level) {
+            gameState.difficulty = level;
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+        }
+
+        function goBack() {
+            showScreen('modeScreen');
+        }
+
+        function startGame() {
+            if (gameState.mode === 'player') {
+                gameState.player1 = document.getElementById('player1Name').value.trim() || 'Player 1';
+                gameState.player2 = document.getElementById('player2Name').value.trim() || 'Player 2';
+            } else {
+                gameState.player1 = document.getElementById('playerName').value.trim() || 'Player';
+                gameState.player2 = 'Computer';
+            }
+
+            document.getElementById('p1Label').textContent = gameState.player1;
+            document.getElementById('p2Label').textContent = gameState.player2;
+            
+            resetBoard();
+            showScreen('gameScreen');
+            updateDisplay();
+        }
+
+        function resetBoard() {
+            gameState.board = ['', '', '', '', '', '', '', '', ''];
+            gameState.currentPlayer = 'X';
+            gameState.gameActive = true;
+            
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                cell.textContent = '';
+                cell.classList.remove('taken', 'x', 'o');
+            });
+            
+            document.getElementById('message').textContent = '';
+        }
+
+        function updateDisplay() {
+            const playerName = gameState.currentPlayer === 'X' ? gameState.player1 : gameState.player2;
+            document.getElementById('currentPlayer').textContent = `${playerName}'s Turn (${gameState.currentPlayer})`;
+            document.getElementById('p1Score').textContent = gameState.scores.p1;
+            document.getElementById('p2Score').textContent = gameState.scores.p2;
+            document.getElementById('drawScore').textContent = gameState.scores.draw;
+        }
+
+        function makeMove(index) {
+            if (!gameState.gameActive || gameState.board[index] !== '') return;
+
+            gameState.board[index] = gameState.currentPlayer;
+            const cell = document.querySelectorAll('.cell')[index];
+            cell.textContent = gameState.currentPlayer;
+            cell.classList.add('taken', gameState.currentPlayer.toLowerCase());
+
+            if (checkWin()) {
+                endGame(false);
+                return;
+            }
+
+            if (checkDraw()) {
+                endGame(true);
+                return;
+            }
+
+            gameState.currentPlayer = gameState.currentPlayer === 'X' ? 'O' : 'X';
+            updateDisplay();
+
+            if (gameState.mode === 'computer' && gameState.currentPlayer === 'O' && gameState.gameActive) {
+                setTimeout(computerMove, 500);
+            }
+        }
+
+        function computerMove() {
+            let move;
+            if (gameState.difficulty === 'easy') {
+                move = easyMove();
+            } else {
+                move = hardMove();
+            }
+            makeMove(move);
+        }
+
+        function easyMove() {
+            const available = gameState.board
+                .map((val, idx) => val === '' ? idx : null)
+                .filter(val => val !== null);
+            return available[Math.floor(Math.random() * available.length)];
+        }
+
+        function hardMove() {
+            // Try to win
+            for (let i = 0; i < 9; i++) {
+                if (gameState.board[i] === '') {
+                    gameState.board[i] = 'O';
+                    if (checkWinForPlayer('O')) {
+                        gameState.board[i] = '';
+                        return i;
+                    }
+                    gameState.board[i] = '';
+                }
+            }
+
+            // Block player
+            for (let i = 0; i < 9; i++) {
+                if (gameState.board[i] === '') {
+                    gameState.board[i] = 'X';
+                    if (checkWinForPlayer('X')) {
+                        gameState.board[i] = '';
+                        return i;
+                    }
+                    gameState.board[i] = '';
+                }
+            }
+
+            // Take center
+            if (gameState.board[4] === '') return 4;
+
+            // Take corner
+            const corners = [0, 2, 6, 8];
+            const availableCorners = corners.filter(i => gameState.board[i] === '');
+            if (availableCorners.length > 0) {
+                return availableCorners[Math.floor(Math.random() * availableCorners.length)];
+            }
+
+            // Take any
+            return easyMove();
+        }
+
+        function checkWin() {
+            return winPatterns.some(pattern => {
+                return pattern.every(index => 
+                    gameState.board[index] === gameState.currentPlayer
+                );
+            });
+        }
+
+        function checkWinForPlayer(player) {
+            return winPatterns.some(pattern => {
+                return pattern.every(index => gameState.board[index] === player);
+            });
+        }
+
+        function checkDraw() {
+            return gameState.board.every(cell => cell !== '');
+        }
+
+        function endGame(isDraw) {
+            gameState.gameActive = false;
+            const message = document.getElementById('message');
+            
+            if (isDraw) {
+                message.textContent = "It's a Draw! 🤝";
+                gameState.scores.draw++;
+            } else {
+                const winner = gameState.currentPlayer === 'X' ? gameState.player1 : gameState.player2;
+                message.textContent = `🎉 ${winner} Wins! 🎉`;
+                message.classList.add('winner');
+                
+                if (gameState.currentPlayer === 'X') {
+                    gameState.scores.p1++;
+                } else {
+                    gameState.scores.p2++;
+                }
+                
+                setTimeout(() => message.classList.remove('winner'), 500);
+            }
+            
+            updateDisplay();
+        }
+
+        function restartRound() {
+            resetBoard();
+            updateDisplay();
+        }
+
+        function backToMenu() {
+            gameState.scores = { p1: 0, p2: 0, draw: 0 };
+            showScreen('modeScreen');
+        }
+    </script>
+</body>
+</html>

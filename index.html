@@ -3,150 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kids Game Portal</title>
-    <!-- Load Tailwind CSS via CDN for modern styling -->
+    <title>The Brain Quest: Safe & Smart Kids Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        /* Custom font family (Inter is the default, but ensuring it's loaded) */
+        /* Switching to Poppins for a more playful, kid-friendly look */
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f7f7f7; /* Light off-white background */
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f8ff; /* Soft, light-blue background */
         }
-        /* Custom shadows for a fun, "poppy" look */
-        .card-shadow {
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        /* Custom "pop" shadow for a tactile feel (like a digital toy) */
+        .card-pop-shadow {
+            box-shadow: 0 4px 0 0 #3b82f6, 0 6px 12px rgba(0, 0, 0, 0.2);
         }
-        /* Fix for scroll-to-top when using anchor links */
+        .card-pop-shadow:hover {
+            box-shadow: 0 2px 0 0 #1e40af, 0 3px 6px rgba(0, 0, 0, 0.3);
+            transform: translateY(2px); /* Press-down effect */
+        }
         html {
             scroll-behavior: smooth;
         }
     </style>
+    <script>
+        // Simple JavaScript for the Rules Modal (Placeholder)
+        function toggleRulesModal() {
+            document.getElementById('rules-modal').classList.toggle('hidden');
+        }
+    </script>
 </head>
 <body class="min-h-screen antialiased">
 
-    <!-- Header & Navigation -->
-    <header class="sticky top-0 z-10 bg-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <!-- Logo/Title. The link href="#" will ensure it resets to the top of the page. -->
-            <a href="#" class="text-3xl font-extrabold text-blue-600 hover:text-blue-800 transition duration-300">
-                <span class="inline-block transform hover:rotate-6 transition duration-300">🎉</span> Kids Game Portal
+    <header class="sticky top-0 z-50 bg-white shadow-xl">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+            
+            <a href="#home" class="text-3xl font-extrabold text-indigo-600 hover:text-indigo-800 transition duration-300">
+                <span class="inline-block transform hover:rotate-12 transition duration-300">💡</span> THE BRAIN QUEST
             </a>
-            <!-- Navigation Links -->
-            <nav class="space-x-4 md:space-x-8 text-lg font-semibold hidden sm:flex">
-                <!-- Home link is now set to #home (pointing to the Hero section ID) -->
-                <a href="#home" class="text-gray-700 hover:text-blue-600 transition duration-200 p-2 rounded-lg">Home</a>
-                <a href="#games" class="text-gray-700 hover:text-blue-600 transition duration-200 p-2 rounded-lg">Games</a>
-                <!-- About link is now set to #about-us (pointing to the new About section ID) -->
-                <a href="#about-us" class="text-gray-700 hover:text-blue-600 transition duration-200 p-2 rounded-lg">About</a>
-            </nav>
+            
+            <div class="flex items-center space-x-3 md:space-x-6">
+                
+                <button onclick="toggleRulesModal()"
+                        class="px-4 py-2 bg-yellow-500 text-gray-900 font-bold text-base rounded-full shadow-md hover:bg-yellow-400 transition duration-200 focus:outline-none flex items-center">
+                    <span class="mr-1">📜</span> Game Rules
+                </button>
+                
+                <a href="parent-dashboard.html" 
+                   class="hidden sm:block text-sm font-semibold text-gray-500 hover:text-red-600 transition duration-200 p-2 rounded-lg border border-transparent hover:border-red-300">
+                    Parent/Safety Hub
+                </a>
+            </div>
         </div>
     </header>
 
-    <!-- 1. Home / Hero Section (The primary landing view) -->
-    <!-- I've added id="home" here, so the 'Home' link snaps directly to this section. -->
-    <section id="home" class="py-16 md:py-24 text-center bg-yellow-400 bg-opacity-70">
-        <div class="max-w-4xl mx-auto px-4">
-            <h2 class="text-4xl sm:text-6xl font-black text-gray-900 mb-4 leading-tight">
-                Fun & Learning Games for Kids!
+    <section id="home" class="py-16 md:py-28 text-center bg-indigo-500 text-white relative overflow-hidden">
+        <div class="max-w-5xl mx-auto px-4 relative z-10">
+            <h2 class="text-4xl sm:text-6xl font-black mb-4 leading-tight tracking-tight">
+                Your Next Mission: The Logic Labyrinth!
             </h2>
-            <p class="text-xl sm:text-2xl text-gray-700 font-medium">
-                Play safe, learn fast, and explore a world of adventure!
+            <p class="text-xl sm:text-2xl font-light opacity-90 mb-8">
+                **Play Smart, Not Just Fast.** Increase your IQ and unlock the next rank of the Quest!
             </p>
-            <a href="#games" class="mt-8 inline-block px-8 py-3 bg-red-500 text-white font-bold text-xl rounded-full shadow-lg hover:bg-red-600 transform hover:scale-105 transition duration-300">
-                Start Playing Now!
+            
+            <a href="#skill-mastery" class="mt-8 inline-block px-10 py-4 bg-green-400 text-gray-900 font-extrabold text-xl rounded-full shadow-2xl hover:bg-green-300 transform hover:scale-105 transition duration-300 card-pop-shadow">
+                Start Challenge Level 5 <span class="ml-2">🚀</span>
             </a>
         </div>
+        <div class="absolute inset-0 bg-gradient-to-br from-indigo-500 to-blue-600 opacity-90"></div>
     </section>
 
-    <!-- 2. Games List Section -->
-    <section id="games" class="py-16 md:py-20 bg-gray-100">
+    <section id="skill-mastery" class="py-16 md:py-24 bg-f0f8ff">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h3 class="text-4xl font-extrabold text-gray-800 text-center mb-12">
-                🎯 Our Featured Games
+            <h3 class="text-4xl font-black text-gray-800 text-center mb-4">
+                🧠 Master a New Skill Today
             </h3>
+            <p class="text-xl text-gray-600 text-center mb-12">
+                Click a category to find games that boost that specific cognitive ability.
+            </p>
             
-            <!-- New: Game Search Bar -->
-            <div class="mb-12 max-w-lg mx-auto">
-                <label for="game-search" class="sr-only">Search Games</label>
-                <div class="relative shadow-md rounded-full">
-                    <input type="text" id="game-search" placeholder="Search for a game..." 
-                           class="w-full p-4 pl-12 pr-6 border-4 border-blue-400 rounded-full text-lg focus:outline-none focus:border-blue-600 transition duration-200"
-                           aria-label="Search for games">
-                    <!-- Simple Search Icon (Inline SVG for consistency) -->
-                    <svg class="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+
+                <a href="games/logic-puzzles.html" class="skill-card block p-6 text-center bg-white rounded-2xl card-pop-shadow transition border-b-4 border-red-500">
+                    <div class="text-5xl mb-3">🧩</div>
+                    <h4 class="text-xl font-extrabold text-gray-800">Logic Puzzles</h4>
+                    <p class="text-sm text-gray-500">Critical Thinking & Deduction</p>
+                </a>
+
+                <a href="games/spatial-games.html" class="skill-card block p-6 text-center bg-white rounded-2xl card-pop-shadow transition border-b-4 border-blue-500">
+                    <div class="text-5xl mb-3">🔭</div>
+                    <h4 class="text-xl font-extrabold text-gray-800">Spatial Sense</h4>
+                    <p class="text-sm text-gray-500">3D Awareness & Geometry</p>
+                </a>
+
+                <a href="games/memory-games.html" class="skill-card block p-6 text-center bg-white rounded-2xl card-pop-shadow transition border-b-4 border-purple-500">
+                    <div class="text-5xl mb-3">💡</div>
+                    <h4 class="text-xl font-extrabold text-gray-800">Memory & Focus</h4>
+                    <p class="text-sm text-gray-500">Retention & Concentration</p>
+                </a>
+
+                <a href="games/literacy-games.html" class="skill-card block p-6 text-center bg-white rounded-2xl card-pop-shadow transition border-b-4 border-green-500">
+                    <div class="text-5xl mb-3">📖</div>
+                    <h4 class="text-xl font-extrabold text-gray-800">Word Quest</h4>
+                    <p class="text-sm text-gray-500">Reading & Vocabulary</p>
+                </a>
+
             </div>
-            <!-- /Game Search Bar -->
-
-
-            <!-- Games Container (Responsive Grid) -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-
-                <!-- Game Card 1: Typing Game -->
-                <a href="games/typing-game.html" class="game-card block bg-white rounded-2xl p-6 text-center card-shadow hover:shadow-xl transform hover:-translate-y-1 transition duration-300 border-b-4 border-green-500 hover:border-green-600">
-                    <div class="text-5xl mb-3">⌨️</div>
-                    <h4 class="text-xl font-bold text-gray-800 mb-1">Typing Game</h4>
-                    <p class="text-sm text-gray-500">Master the keyboard!</p>
-                </a>
-
-                <!-- Game Card 2: Math Challenge -->
-                <a href="games/math-game.html" class="game-card block bg-white rounded-2xl p-6 text-center card-shadow hover:shadow-xl transform hover:-translate-y-1 transition duration-300 border-b-4 border-blue-500 hover:border-blue-600">
-                    <div class="text-5xl mb-3">➕</div>
-                    <h4 class="text-xl font-bold text-gray-800 mb-1">Math Challenge</h4>
-                    <p class="text-sm text-gray-500">Fun with numbers!</p>
-                </a>
-
-                <!-- Game Card 3: Memory Match -->
-                <a href="games/memory-game.html" class="game-card block bg-white rounded-2xl p-6 text-center card-shadow hover:shadow-xl transform hover:-translate-y-1 transition duration-300 border-b-4 border-purple-500 hover:border-purple-600">
-                    <div class="text-5xl mb-3">🧠</div>
-                    <h4 class="text-xl font-bold text-gray-800 mb-1">Memory Match</h4>
-                    <p class="text-sm text-gray-500">Test your brain power!</p>
-                </a>
-
-                <!-- Game Card 4: Monster Munch -->
-                <a href="games/monster-munch.html" class="game-card block bg-white rounded-2xl p-6 text-center card-shadow hover:shadow-xl transform hover:-translate-y-1 transition duration-300 border-b-4 border-red-500 hover:border-red-600">
-                    <div class="text-5xl mb-3">👾</div>
-                    <h4 class="text-xl font-bold text-gray-800 mb-1">Monster Munch</h4>
-                    <p class="text-sm text-gray-500">An arcade eating adventure!</p>
-                </a>
-
-                <!-- NEW Game Card: Tic Tac Toe -->
-                <a href="games/tic-tac-toe.html" class="game-card block bg-white rounded-2xl p-6 text-center card-shadow hover:shadow-xl transform hover:-translate-y-1 transition duration-300 border-b-4 border-orange-500 hover:border-orange-600">
-                    <div class="text-5xl mb-3">❌</div>
-                    <h4 class="text-xl font-bold text-gray-800 mb-1">Tic Tac Toe</h4>
-                    <p class="text-sm text-gray-500">The classic strategy game!</p>
-                </a>
-                
             </div>
-            <!-- /Games Container -->
-
-        </div>
     </section>
 
-    <!-- 3. New About Us Section -->
-    <!-- This section is the new target for the 'About' link in the navigation. -->
     <section id="about-us" class="py-16 md:py-20 bg-white border-t border-gray-200">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h3 class="text-4xl font-extrabold text-blue-600 mb-6">
-                📚 Why Choose Our Portal?
+            <h3 class="text-4xl font-extrabold text-red-600 mb-6">
+                🔒 Our Promise to Parents
             </h3>
-            <p class="text-lg text-gray-700 mb-4">
-                We believe learning should be an adventure! Our games are hand-picked and designed by educators and parents to be 100% safe, ad-free, and educational. We focus on key skills like literacy, numeracy, and problem-solving, all wrapped up in fun, colorful packages your child will love.
-            </p>
-            <p class="text-lg text-gray-700 font-semibold">
-                Join our mission to make screen time count!
-            </p>
+            <div class="space-y-4 text-left text-lg text-gray-700">
+                <p class="flex items-center">
+                    <span class="text-green-500 text-2xl mr-3">✓</span> **Zero Ads, Zero Purchases:** We are completely non-commercial.
+                </p>
+                <p class="flex items-center">
+                    <span class="text-green-500 text-2xl mr-3">✓</span> **Time Limit Controls:** Parents can set daily time limits to prevent addiction.
+                </p>
+                <p class="flex items-center">
+                    <span class="text-green-500 text-2xl mr-3">✓</span> **Educational Focus:** Every game is designed by educators to enhance cognitive ability and IQ.
+                </p>
+                <p class="flex items-center">
+                    <span class="text-green-500 text-2xl mr-3">✓</span> **Privacy First:** We are fully compliant and never collect personal data from your child.
+                </p>
+                <p class="text-center pt-4 font-semibold text-gray-800">
+                    <a href="parent-dashboard.html" class="text-blue-600 hover:underline">Visit the Parent Hub for full details and controls.</a>
+                </p>
+            </div>
         </div>
     </section>
 
-    <!-- Footer -->
     <footer id="footer" class="bg-gray-800 py-6">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white text-sm font-light">
-            <p>Made with <span class="text-red-500">❤️</span> for kids. &copy; 2024 Kids Game Portal.</p>
-            <p class="mt-1">Thanks for stopping by!</p>
+            <p>Made with <span class="text-red-500">❤️</span> for smart kids. &copy; 2024 The Brain Quest.</p>
+            <p class="mt-2">
+                <a href="privacy-policy.html" class="hover:text-yellow-400 underline">Privacy Policy / COPPA Compliance</a>
+            </p>
         </div>
     </footer>
+
+
+    <div id="rules-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-8 rounded-2xl max-w-lg w-full card-pop-shadow border-4 border-indigo-600">
+            <h4 class="text-3xl font-black text-indigo-600 mb-4 flex items-center justify-center">
+                <span class="mr-3">⭐</span> Our Fun Rules <span class="ml-3">⭐</span>
+            </h4>
+            <div class="space-y-4 text-lg text-gray-700 font-semibold">
+                <p class="flex items-start">1. **Be a Brain Champ!** We play to learn new things and solve hard puzzles.</p>
+                <p class="flex items-start">2. **No Rushing!** Take your time. Smart answers beat fast answers.</p>
+                <p class="flex items-start">3. **It’s All Free!** You never need a wallet here. Just your awesome brain!</p>
+                <p class="flex items-start">4. **No Strangers!** This is a safe place. You only talk to the friendly characters.</p>
+            </div>
+            <button onclick="toggleRulesModal()"
+                    class="mt-6 w-full py-3 bg-red-500 text-white font-bold text-lg rounded-xl shadow-lg hover:bg-red-600 transition duration-200">
+                Got It! Let's Play!
+            </button>
+        </div>
+    </div>
 
 </body>
 </html>

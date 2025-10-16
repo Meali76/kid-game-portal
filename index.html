@@ -1,167 +1,165 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Brain Quest: Safe & Smart Kids Portal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
-    <style>
-        /* Switching to Poppins for a more playful, kid-friendly look */
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f0f8ff; /* Soft, light-blue background */
-        }
-        /* Custom "pop" shadow for a tactile feel (like a digital toy) */
-        .card-pop-shadow {
-            box-shadow: 0 4px 0 0 #3b82f6, 0 6px 12px rgba(0, 0, 0, 0.2);
-        }
-        .card-pop-shadow:hover {
-            box-shadow: 0 2px 0 0 #1e40af, 0 3px 6px rgba(0, 0, 0, 0.3);
-            transform: translateY(2px); /* Press-down effect */
-        }
-        html {
-            scroll-behavior: smooth;
-        }
-    </style>
-    <script>
-        // Simple JavaScript for the Rules Modal (Placeholder)
-        function toggleRulesModal() {
-            document.getElementById('rules-modal').classList.toggle('hidden');
-        }
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Brain Quest: Safe & Smart Kids Portal</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+
+  <!-- SEO -->
+  <meta name="description" content="The Brain Quest: A safe, ad-free, educational gaming portal for kids to boost memory, logic, and creativity.">
+  <meta name="keywords" content="kids learning games, brain games for children, logic puzzles for kids, educational fun, child safe games">
+  <meta name="author" content="The Brain Quest">
+
+  <!-- Animations -->
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f0f8ff;
+    }
+    .card-pop-shadow {
+      box-shadow: 0 4px 0 0 #3b82f6, 0 6px 12px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease-in-out;
+    }
+    .card-pop-shadow:hover {
+      box-shadow: 0 2px 0 0 #1e40af, 0 3px 6px rgba(0, 0, 0, 0.3);
+      transform: translateY(2px) scale(1.03);
+    }
+    html { scroll-behavior: smooth; }
+  </style>
+
+  <script>
+    function toggleRulesModal() {
+      document.getElementById('rules-modal').classList.toggle('hidden');
+    }
+
+    // Sound Toggle
+    let soundOn = false;
+    const sound = new Audio('assets/sounds/click.mp3');
+    function toggleSound() {
+      soundOn = !soundOn;
+      const btn = document.getElementById('soundToggle');
+      btn.textContent = soundOn ? '🔊' : '🔇';
+      if (soundOn) sound.play();
+    }
+  </script>
 </head>
+
 <body class="min-h-screen antialiased">
 
-    <header class="sticky top-0 z-50 bg-white shadow-xl">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
-            
-            <a href="#home" class="text-3xl font-extrabold text-indigo-600 hover:text-indigo-800 transition duration-300">
-                <span class="inline-block transform hover:rotate-12 transition duration-300">💡</span> THE BRAIN QUEST
-            </a>
-            
-            <div class="flex items-center space-x-3 md:space-x-6">
-                
-                <button onclick="toggleRulesModal()"
-                        class="px-4 py-2 bg-yellow-500 text-gray-900 font-bold text-base rounded-full shadow-md hover:bg-yellow-400 transition duration-200 focus:outline-none flex items-center">
-                    <span class="mr-1">📜</span> Game Rules
-                </button>
-                
-                <a href="parent-dashboard.html" 
-                   class="hidden sm:block text-sm font-semibold text-gray-500 hover:text-red-600 transition duration-200 p-2 rounded-lg border border-transparent hover:border-red-300">
-                    Parent/Safety Hub
-                </a>
-            </div>
-        </div>
-    </header>
-
-    <section id="home" class="py-16 md:py-28 text-center bg-indigo-500 text-white relative overflow-hidden">
-        <div class="max-w-5xl mx-auto px-4 relative z-10">
-            <h2 class="text-4xl sm:text-6xl font-black mb-4 leading-tight tracking-tight">
-                Your Next Mission: The Logic Labyrinth!
-            </h2>
-            <p class="text-xl sm:text-2xl font-light opacity-90 mb-8">
-                **Play Smart, Not Just Fast.** Increase your IQ and unlock the next rank of the Quest!
-            </p>
-            
-            <a href="#skill-mastery" class="mt-8 inline-block px-10 py-4 bg-green-400 text-gray-900 font-extrabold text-xl rounded-full shadow-2xl hover:bg-green-300 transform hover:scale-105 transition duration-300 card-pop-shadow">
-                Start Challenge Level 5 <span class="ml-2">🚀</span>
-            </a>
-        </div>
-        <div class="absolute inset-0 bg-gradient-to-br from-indigo-500 to-blue-600 opacity-90"></div>
-    </section>
-
-    <section id="skill-mastery" class="py-16 md:py-24 bg-f0f8ff">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h3 class="text-4xl font-black text-gray-800 text-center mb-4">
-                🧠 Master a New Skill Today
-            </h3>
-            <p class="text-xl text-gray-600 text-center mb-12">
-                Click a category to find games that boost that specific cognitive ability.
-            </p>
-            
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-
-                <a href="games/logic-puzzles.html" class="skill-card block p-6 text-center bg-white rounded-2xl card-pop-shadow transition border-b-4 border-red-500">
-                    <div class="text-5xl mb-3">🧩</div>
-                    <h4 class="text-xl font-extrabold text-gray-800">Logic Puzzles</h4>
-                    <p class="text-sm text-gray-500">Critical Thinking & Deduction</p>
-                </a>
-
-                <a href="games/spatial-games.html" class="skill-card block p-6 text-center bg-white rounded-2xl card-pop-shadow transition border-b-4 border-blue-500">
-                    <div class="text-5xl mb-3">🔭</div>
-                    <h4 class="text-xl font-extrabold text-gray-800">Spatial Sense</h4>
-                    <p class="text-sm text-gray-500">3D Awareness & Geometry</p>
-                </a>
-
-                <a href="games/memory-games.html" class="skill-card block p-6 text-center bg-white rounded-2xl card-pop-shadow transition border-b-4 border-purple-500">
-                    <div class="text-5xl mb-3">💡</div>
-                    <h4 class="text-xl font-extrabold text-gray-800">Memory & Focus</h4>
-                    <p class="text-sm text-gray-500">Retention & Concentration</p>
-                </a>
-
-                <a href="games/literacy-games.html" class="skill-card block p-6 text-center bg-white rounded-2xl card-pop-shadow transition border-b-4 border-green-500">
-                    <div class="text-5xl mb-3">📖</div>
-                    <h4 class="text-xl font-extrabold text-gray-800">Word Quest</h4>
-                    <p class="text-sm text-gray-500">Reading & Vocabulary</p>
-                </a>
-
-            </div>
-            </div>
-    </section>
-
-    <section id="about-us" class="py-16 md:py-20 bg-white border-t border-gray-200">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h3 class="text-4xl font-extrabold text-red-600 mb-6">
-                🔒 Our Promise to Parents
-            </h3>
-            <div class="space-y-4 text-left text-lg text-gray-700">
-                <p class="flex items-center">
-                    <span class="text-green-500 text-2xl mr-3">✓</span> **Zero Ads, Zero Purchases:** We are completely non-commercial.
-                </p>
-                <p class="flex items-center">
-                    <span class="text-green-500 text-2xl mr-3">✓</span> **Time Limit Controls:** Parents can set daily time limits to prevent addiction.
-                </p>
-                <p class="flex items-center">
-                    <span class="text-green-500 text-2xl mr-3">✓</span> **Educational Focus:** Every game is designed by educators to enhance cognitive ability and IQ.
-                </p>
-                <p class="flex items-center">
-                    <span class="text-green-500 text-2xl mr-3">✓</span> **Privacy First:** We are fully compliant and never collect personal data from your child.
-                </p>
-                <p class="text-center pt-4 font-semibold text-gray-800">
-                    <a href="parent-dashboard.html" class="text-blue-600 hover:underline">Visit the Parent Hub for full details and controls.</a>
-                </p>
-            </div>
-        </div>
-    </section>
-
-    <footer id="footer" class="bg-gray-800 py-6">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white text-sm font-light">
-            <p>Made with <span class="text-red-500">❤️</span> for smart kids. &copy; 2024 The Brain Quest.</p>
-            <p class="mt-2">
-                <a href="privacy-policy.html" class="hover:text-yellow-400 underline">Privacy Policy / COPPA Compliance</a>
-            </p>
-        </div>
-    </footer>
-
-
-    <div id="rules-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white p-8 rounded-2xl max-w-lg w-full card-pop-shadow border-4 border-indigo-600">
-            <h4 class="text-3xl font-black text-indigo-600 mb-4 flex items-center justify-center">
-                <span class="mr-3">⭐</span> Our Fun Rules <span class="ml-3">⭐</span>
-            </h4>
-            <div class="space-y-4 text-lg text-gray-700 font-semibold">
-                <p class="flex items-start">1. **Be a Brain Champ!** We play to learn new things and solve hard puzzles.</p>
-                <p class="flex items-start">2. **No Rushing!** Take your time. Smart answers beat fast answers.</p>
-                <p class="flex items-start">3. **It’s All Free!** You never need a wallet here. Just your awesome brain!</p>
-                <p class="flex items-start">4. **No Strangers!** This is a safe place. You only talk to the friendly characters.</p>
-            </div>
-            <button onclick="toggleRulesModal()"
-                    class="mt-6 w-full py-3 bg-red-500 text-white font-bold text-lg rounded-xl shadow-lg hover:bg-red-600 transition duration-200">
-                Got It! Let's Play!
-            </button>
-        </div>
+  <!-- Header -->
+  <header class="sticky top-0 z-50 bg-white shadow-xl">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+      <a href="#home" class="text-3xl font-extrabold text-indigo-600 hover:text-indigo-800 transition">
+        <span class="inline-block transform hover:rotate-12">💡</span> THE BRAIN QUEST
+      </a>
+      <div class="flex items-center space-x-3">
+        <button onclick="toggleRulesModal()" class="px-4 py-2 bg-yellow-500 text-gray-900 font-bold rounded-full shadow-md hover:bg-yellow-400 transition">
+          📜 Rules
+        </button>
+        <button id="soundToggle" onclick="toggleSound()" class="text-2xl">🔇</button>
+        <a href="parent-dashboard.html" class="hidden sm:block text-sm font-semibold text-gray-500 hover:text-red-600 transition">Parent Hub</a>
+      </div>
     </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section id="home" class="py-20 text-center bg-gradient-to-br from-indigo-500 to-blue-600 text-white relative overflow-hidden">
+    <div class="max-w-5xl mx-auto px-4" data-aos="zoom-in">
+      <h2 class="text-5xl sm:text-6xl font-black mb-4">Your Next Mission: The Logic Labyrinth!</h2>
+      <p class="text-xl opacity-90 mb-8">Play Smart, Not Just Fast. Train your brain and unlock new levels!</p>
+      <a href="#skill-mastery" class="inline-block px-10 py-4 bg-green-400 text-gray-900 font-extrabold text-xl rounded-full shadow-2xl hover:bg-green-300 transform hover:scale-105 transition">
+        Start Challenge 🚀
+      </a>
+    </div>
+  </section>
+
+  <!-- Skill Categories -->
+  <section id="skill-mastery" class="py-16 bg-[#f0f8ff]">
+    <div class="max-w-7xl mx-auto px-4">
+      <h3 class="text-4xl font-black text-gray-800 text-center mb-4" data-aos="fade-down">🧠 Master a New Skill</h3>
+      <p class="text-xl text-gray-600 text-center mb-12">Choose a skill to level up your brain!</p>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <a href="games/logic-puzzles.html" class="skill-card block p-6 text-center bg-white rounded-2xl card-pop-shadow border-b-4 border-red-500" data-aos="flip-left">
+          <div class="text-5xl mb-3">🧩</div>
+          <h4 class="text-xl font-extrabold text-gray-800">Logic Puzzles</h4>
+          <p class="text-sm text-gray-500">Critical Thinking</p>
+          <p class="text-xs text-gray-400 mt-1">🎮 5 Games</p>
+        </a>
+
+        <a href="games/spatial-games.html" class="block p-6 text-center bg-white rounded-2xl card-pop-shadow border-b-4 border-blue-500" data-aos="flip-left">
+          <div class="text-5xl mb-3">🔭</div>
+          <h4 class="text-xl font-extrabold text-gray-800">Spatial Sense</h4>
+          <p class="text-sm text-gray-500">3D Awareness</p>
+          <p class="text-xs text-gray-400 mt-1">🎮 3 Games</p>
+        </a>
+
+        <a href="games/memory-games.html" class="block p-6 text-center bg-white rounded-2xl card-pop-shadow border-b-4 border-purple-500" data-aos="flip-left">
+          <div class="text-5xl mb-3">💡</div>
+          <h4 class="text-xl font-extrabold text-gray-800">Memory & Focus</h4>
+          <p class="text-sm text-gray-500">Retention Skills</p>
+          <p class="text-xs text-gray-400 mt-1">🎮 4 Games</p>
+        </a>
+
+        <a href="games/literacy-games.html" class="block p-6 text-center bg-white rounded-2xl card-pop-shadow border-b-4 border-green-500" data-aos="flip-left">
+          <div class="text-5xl mb-3">📖</div>
+          <h4 class="text-xl font-extrabold text-gray-800">Word Quest</h4>
+          <p class="text-sm text-gray-500">Reading Fun</p>
+          <p class="text-xs text-gray-400 mt-1">🎮 3 Games</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Parent Safety Section -->
+  <section id="about-us" class="py-16 bg-white border-t border-gray-200">
+    <div class="max-w-4xl mx-auto px-4 text-center" data-aos="fade-up">
+      <h3 class="text-4xl font-extrabold text-red-600 mb-6">🔒 Our Promise to Parents</h3>
+      <div class="space-y-4 text-left text-lg text-gray-700">
+        <p><span class="text-green-500 text-2xl mr-3">✓</span><b>Zero Ads, Zero Purchases:</b> 100% free and safe.</p>
+        <p><span class="text-green-500 text-2xl mr-3">✓</span><b>Time Limit Controls:</b> Set playtime limits easily.</p>
+        <p><span class="text-green-500 text-2xl mr-3">✓</span><b>Educational Focus:</b> Designed with real educators.</p>
+        <p><span class="text-green-500 text-2xl mr-3">✓</span><b>Privacy First:</b> No personal data collected.</p>
+        <p class="text-center pt-4 font-semibold">
+          <a href="parent-dashboard.html" class="text-blue-600 hover:underline">Visit Parent Hub</a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-gray-800 py-6 text-center text-white text-sm">
+    <p>Made with <span class="text-red-500">❤️</span> for smart kids. © 2025 The Brain Quest.</p>
+    <p class="mt-2"><a href="privacy-policy.html" class="hover:text-yellow-400 underline">Privacy Policy / COPPA Compliance</a></p>
+  </footer>
+
+  <!-- Rules Modal -->
+  <div id="rules-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white p-8 rounded-2xl max-w-lg w-full border-4 border-indigo-600">
+      <h4 class="text-3xl font-black text-indigo-600 mb-4 text-center">⭐ Game Rules ⭐</h4>
+      <ul class="space-y-4 text-lg text-gray-700 font-semibold text-left">
+        <li>1️⃣ <b>Be a Brain Champ!</b> Play to learn and think deeply.</li>
+        <li>2️⃣ <b>No Rushing!</b> Smart beats fast.</li>
+        <li>3️⃣ <b>It’s All Free!</b> You only need your brain.</li>
+        <li>4️⃣ <b>Stay Safe!</b> No chatting, no strangers.</li>
+      </ul>
+      <button onclick="toggleRulesModal()" class="mt-6 w-full py-3 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition">Got It! Let’s Play!</button>
+    </div>
+  </div>
+
+  <!-- Animation Library -->
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script>
+    AOS.init({ duration: 800, once: true });
+  </script>
 
 </body>
 </html>

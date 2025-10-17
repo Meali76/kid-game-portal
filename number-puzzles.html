@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Puzzles: Sequence Solver | The Brain Quest</title>
+
+    <!-- Load Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fonts: Poppins (Body) and Fredoka (Titles/Game UI) -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Poppins:wght@400;600;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f8ff; /* Light background */
+        }
+        h1, h2, .game-title {
+            font-family: 'Fredoka', cursive;
+            letter-spacing: 0.5px;
+        }
+        .gradient-bg {
+            /* Logic theme background */
+            background: linear-gradient(135deg, #a855f7 0%, #d946ef 100%); 
+        }
+        .card-gradient {
+            background: linear-gradient(135deg, #ffffff 0%, #f3e7ff 100%);
+        }
+        .sequence-slot {
+            width: 5.5rem;
+            height: 5.5rem;
+            border: 4px dashed #a78bfa;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #7c3aed;
+            background-color: #fff;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .filled-slot {
+            border: 4px solid #7c3aed;
+            background-color: #fef3c7;
+            box-shadow: 0 4px 0 0 #f59e0b; /* 3D effect */
+        }
+        .draggable-number {
+            width: 5rem;
+            height: 5rem;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 900;
+            cursor: grab;
+            box-shadow: 0 6px 0 0 #d97706, 0 8px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .draggable-number:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 0 0 #d97706, 0 6px 10px rgba(0, 0, 0, 0.4);
+        }
+        .drag-over {
+            transform: scale(1.1);
+            border: 4px solid #f59e0b !important;
+            box-shadow: 0 0 20px rgba(255, 165, 0, 0.6);
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 3px solid #fbbf24;
+            border-radius: 1rem;
+            padding: 0.75rem;
+            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+        }
+        /* Spinner CSS for loading state */
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 1.5rem;
+            height: 1.5rem;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen gradient-bg flex flex-col items-center">
+
+    <!-- Header & Navigation -->
+    <header class="w-full bg-white shadow-xl">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="logic-games.html" class="text-2xl font-extrabold text-purple-600 hover:text-purple-800 transition">
+                <span class="inline-block mr-2">⬅️</span> Back to Logic Hub
+            </a>
+            <div class="flex items-center space-x-3">
+                 <div class="stat-card text-center min-w-[100px] hidden sm:block">
+                    <p class="text-sm font-bold text-orange-700">⭐ SCORE</p>
+                    <p class="text-3xl font-black text-purple-700" id="score">0</p>
+                </div>
+                <!-- LLM-Powered Hint Button -->
+                <button onclick="getAiHint()" id="ai-hint-btn" class="px-5 py-2 bg-indigo-500 text-white font-bold rounded-full shadow-lg hover:bg-indigo-600 transition disabled:opacity-50">
+                    ✨ AI Hint
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="py-8 w-full max-w-4xl mx-auto px-4">
+        
+        <!-- Game Title and Instructions -->
+        <div class="card-gradient rounded-3xl shadow-2xl p-6 mb-8 border-4 border-purple-400 text-center">
+            <h1 class="game-title text-5xl font-black text-purple-700 mb-2">🔢 Number Puzzles</h1>
+            <p class="text-xl text-gray-700 font-semibold">Drag the missing numbers into the empty boxes to complete the sequence!</p>
+        </div>
+
+        <!-- Notification Bar (also used for AI Hints) -->
+        <div id="notification-bar" class="hidden text-center p-3 rounded-xl font-black text-white mb-4 shadow-lg"></div>
+        
+        <!-- Puzzle Container -->
+        <div class="card-gradient rounded-3xl shadow-2xl p-6 sm:p-10 border-4 border-purple-400">
+
+            <!-- Sequence Display -->
+            <div id="sequence-container" class="flex flex-wrap justify-center gap-4 mb-10">
+                <!-- Slots will be injected here -->
+            </div>
+
+            <!-- Draggable Number Options -->
+            <h3 class="text-2xl font-bold text-purple-700 text-center mb-5">Available Numbers:</h3>
+            <div id="options-container" class="flex flex-wrap justify-center gap-5">
+                <!-- Draggable numbers will be injected here -->
+            </div>
+
+            <!-- Controls -->
+            <div class="flex justify-center space-x-4 mt-10">
+                <button onclick="loadNewPuzzle()" class="px-6 py-3 bg-blue-500 text-white font-bold rounded-xl shadow-lg hover:bg-blue-600 transition transform hover:scale-105">
+                    New Puzzle
+                </button>
+            </div>
+        </div>
+
+        <!-- Win Message Modal -->
+        <div id="win-message-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+            <div class="bg-gradient-to-r from-yellow-300 via-pink-400 to-purple-500 rounded-3xl shadow-2xl p-8 text-center border-4 border-yellow-400 max-w-sm w-full animate-pulse">
+                <div class="text-8xl mb-3">🎉🏆</div>
+                <h2 class="text-4xl font-black text-white mb-3 drop-shadow-lg">AWESOME!</h2>
+                <p class="text-white text-xl font-bold drop-shadow mb-6">You solved the puzzle!</p>
+                <button onclick="loadNewPuzzle()" class="px-6 py-3 bg-green-500 text-white font-bold rounded-xl shadow-xl hover:bg-green-600 transition">
+                    Next Challenge!
+                </button>
+                <!-- LLM-Powered Rule Explainer Button -->
+                <button id="explain-btn" onclick="explainRule()" class="mt-4 px-6 py-3 bg-purple-600 text-white font-bold rounded-xl shadow-xl hover:bg-purple-700 transition">
+                    ✨ Explain the Rule!
+                </button>
+            </div>
+        </div>
+        
+        <!-- Explanation Modal -->
+        <div id="explanation-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-3xl shadow-2xl p-8 text-center border-4 border-purple-600 max-w-lg w-full">
+                <h2 class="text-3xl font-black text-purple-700 mb-4">Rule Explanation</h2>
+                <div id="explanation-content" class="text-gray-700 text-lg font-medium mb-6">
+                    <div class="spinner mx-auto"></div>
+                </div>
+                <button onclick="document.getElementById('explanation-modal').classList.add('hidden')" class="px-6 py-3 bg-red-500 text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition">
+                    Close
+                </button>
+            </div>
+        </div>
+
+
+    </main>
+
+    <script>
+        // --- Gemini API Configuration ---
+        const API_KEY = ""; // Canvas will provide this
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
+        const LLM_MODEL = 'gemini-2.5-flash-preview-09-2025';
+        let isFetching = false;
+        
+        // --- Game State ---
+        let currentSequence = [];
+        let solvedSequence = []; // The full, solved sequence for explanation
+        let score = 0;
+        let totalPuzzlesSolved = 0;
+        const sequenceContainer = document.getElementById('sequence-container');
+        const optionsContainer = document.getElementById('options-container');
+        const notificationBar = document.getElementById('notification-bar');
+        const scoreElement = document.getElementById('score');
+        
+        // Puzzles: Sequence (0 means missing number) and the options available to fill it
+        const PUZZLE_SETS = [
+            // Level 1: Simple Counting
+            { sequence: [1, 2, 0, 4, 5, 0], options: [3, 6], hint: "Try counting up! What's the pattern?" },
+            { sequence: [10, 9, 8, 0, 6, 0], options: [7, 5], hint: "Try counting down! What's the pattern?" },
+            // Level 2: Skip Counting by 2
+            { sequence: [2, 4, 0, 8, 0, 12], options: [6, 10], hint: "The numbers are getting bigger, but not by one! Look at the gaps." },
+            { sequence: [15, 12, 0, 6, 0], options: [9, 3], hint: "The numbers are shrinking. By how much each time?" },
+            // Level 3: Mixed Operations (This one is complex)
+            { sequence: [1, 2, 4, 0, 11, 16, 0], options: [7, 22], hint: "The gap between numbers is changing. What happens to the gap itself?" },
+        ];
+        
+        let currentPuzzleIndex = 0;
+        let currentOptions = [];
+        
+        // --- Utility Functions ---
+
+        function showNotification(message, type = 'info') {
+            notificationBar.textContent = message;
+            notificationBar.className = 'text-center p-3 rounded-xl font-black text-white mb-4 shadow-lg';
+            
+            if (type === 'error') {
+                notificationBar.classList.add('bg-red-500');
+            } else if (type === 'success') {
+                notificationBar.classList.add('bg-green-500');
+            } else if (type === 'ai') {
+                notificationBar.classList.add('bg-purple-600');
+            } else {
+                notificationBar.classList.add('bg-blue-500');
+            }
+            notificationBar.classList.remove('hidden');
+            
+            setTimeout(() => {
+                notificationBar.classList.add('hidden');
+            }, 5000); // 5 seconds for AI hints
+        }
+
+        function updateScore(points) {
+            score += points;
+            scoreElement.textContent = Math.max(0, score);
+        }
+
+        function resetPuzzleState(puzzleData) {
+            currentSequence = [...puzzleData.sequence];
+            currentOptions = [...puzzleData.options];
+            
+            // Calculate the full solved sequence for the 'Explain Rule' feature
+            const originalSequence = puzzleData.sequence;
+            const puzzleSolution = puzzleData.options;
+            let missingCount = 0;
+            solvedSequence = originalSequence.map(num => {
+                if (num === 0) {
+                    return puzzleSolution[missingCount++];
+                }
+                return num;
+            });
+        }
+        
+        // --- LLM Integration Functions ---
+
+        async function fetchAiContent(userQuery) {
+            if (isFetching) return { text: "Please wait for the previous hint to finish!", type: 'error' };
+
+            isFetching = true;
+            document.getElementById('ai-hint-btn').disabled = true;
+            document.getElementById('ai-hint-btn').innerHTML = '<span class="spinner"></span> Thinking...';
+
+            const systemPrompt = "You are a friendly, encouraging, and intelligent tutor for children (ages 6-10). Your goal is to provide a single, concise, and helpful clue or explanation about a number sequence without giving the final answer. Use simple words and emojis.";
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API call failed with status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I can't generate a hint right now. Try again soon!";
+                return { text, type: 'ai' };
+
+            } catch (error) {
+                console.error("Gemini API Error:", error);
+                return { text: "AI is sleeping! 😴 Please try the hint again in a moment.", type: 'error' };
+            } finally {
+                isFetching = false;
+                document.getElementById('ai-hint-btn').disabled = false;
+                document.getElementById('ai-hint-btn').textContent = '✨ AI Hint';
+            }
+        }
+        
+        // --- LLM Feature 1: Get AI Hint ---
+        async function getAiHint() {
+            if (isFetching) return;
+            updateScore(-10); // Penalty for using a hint
+            
+            // 1. Get current sequence information
+            const sequenceString = currentSequence.map(n => n === 0 ? '?' : n).join(', ');
+            const prompt = `The current number sequence is: [${sequenceString}]. Give me a single, simple clue about the mathematical rule (addition, subtraction, multiplication, or pattern) that will help a child solve it. DO NOT give the answer.`;
+            
+            // 2. Fetch hint from LLM
+            const response = await fetchAiContent(prompt);
+            
+            // 3. Display notification
+            showNotification(`AI Tutor: ${response.text} (-10 Points)`, response.type);
+        }
+
+        // --- LLM Feature 2: Explain Rule ---
+        async function explainRule() {
+            if (isFetching) return;
+            
+            // 1. Show loading modal
+            document.getElementById('explanation-modal').classList.remove('hidden');
+            document.getElementById('explanation-content').innerHTML = '<div class="spinner mx-auto"></div><p class="mt-4 text-purple-700 font-semibold">The AI Tutor is analyzing the sequence...</p>';
+            
+            // 2. Generate the prompt using the SOLVED sequence
+            const sequenceString = solvedSequence.join(', ');
+            const prompt = `The solved number sequence is: [${sequenceString}]. Explain the exact rule of this pattern in one simple, clear sentence suitable for a child. For example, 'The rule is to add 2 to the last number.'`;
+            
+            // 3. Fetch explanation from LLM
+            const response = await fetchAiContent(prompt);
+
+            // 4. Update the modal content
+            document.getElementById('explanation-content').innerHTML = 
+                `<p class="text-xl font-bold text-purple-700">The Rule Was:</p>
+                 <p class="text-xl mt-2">${response.text}</p>`;
+        }
+
+
+        // --- Drag and Drop Handlers ---
+        
+        function handleDragStart(e) {
+            e.dataTransfer.setData('text/plain', e.target.dataset.value);
+            e.target.classList.add('opacity-50');
+        }
+        
+        function handleDragEnd(e) {
+            e.target.classList.remove('opacity-50');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault(); 
+            if (e.target.dataset.slot === 'empty') {
+                e.currentTarget.classList.add('drag-over');
+            }
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            
+            if (e.target.dataset.slot === 'empty') {
+                const droppedValue = parseInt(e.dataTransfer.getData('text/plain'));
+                const slotIndex = parseInt(e.target.dataset.index);
+
+                const originalSequence = PUZZLE_SETS[currentPuzzleIndex].sequence;
+                const expectedValue = originalSequence[slotIndex] === 0 ? getMissingNumber(currentSequence, slotIndex) : originalSequence[slotIndex];
+
+                if (droppedValue === expectedValue) {
+                    currentSequence[slotIndex] = droppedValue;
+                    e.target.textContent = droppedValue;
+                    e.target.classList.remove('border-dashed', 'bg-white');
+                    e.target.classList.add('filled-slot');
+
+                    const optionElement = document.querySelector(`.draggable-number[data-value="${droppedValue}"]`);
+                    if (optionElement) {
+                        optionElement.remove();
+                        showNotification(`⭐ Great job! +20 points`, 'success');
+                        updateScore(20);
+                    }
+                } else {
+                    showNotification("❌ Oops! That number doesn't fit here. Try another spot. (-5 Points)", 'error');
+                    updateScore(-5);
+                }
+
+                checkPuzzle(); 
+            }
+        }
+        
+        function getMissingNumber(sequence, index) {
+            const originalSequence = PUZZLE_SETS[currentPuzzleIndex].sequence;
+            const puzzleSolution = PUZZLE_SETS[currentPuzzleIndex].options; 
+            
+            let missingCount = 0;
+            for (let i = 0; i <= index; i++) {
+                if (originalSequence[i] === 0) {
+                    if (i === index) {
+                        return puzzleSolution[missingCount];
+                    }
+                    missingCount++;
+                }
+            }
+            return null;
+        }
+
+
+        // --- Render Functions ---
+
+        function renderSequence() {
+            sequenceContainer.innerHTML = '';
+            
+            currentSequence.forEach((num, index) => {
+                const slot = document.createElement('div');
+                slot.classList.add('sequence-slot', 'transition');
+                
+                if (num === 0) {
+                    slot.dataset.slot = 'empty';
+                    slot.dataset.index = index;
+                    slot.textContent = '?';
+                    slot.addEventListener('dragover', handleDragOver);
+                    slot.addEventListener('dragleave', handleDragLeave);
+                    slot.addEventListener('drop', handleDrop);
+                } else {
+                    slot.textContent = num;
+                    slot.classList.add('filled-slot');
+                    slot.dataset.slot = 'filled';
+                }
+                sequenceContainer.appendChild(slot);
+            });
+        }
+
+        function renderOptions() {
+            optionsContainer.innerHTML = '';
+            
+            const shuffledOptions = currentOptions.sort(() => Math.random() - 0.5);
+
+            shuffledOptions.forEach(num => {
+                const draggable = document.createElement('div');
+                draggable.classList.add('draggable-number', 'z-10');
+                draggable.textContent = num;
+                draggable.setAttribute('draggable', true);
+                draggable.dataset.value = num;
+                
+                draggable.addEventListener('dragstart', handleDragStart);
+                draggable.addEventListener('dragend', handleDragEnd);
+                
+                optionsContainer.appendChild(draggable);
+            });
+        }
+        
+        // --- Game Flow ---
+
+        function checkPuzzle() {
+            const allFilled = !currentSequence.includes(0);
+            const optionsRemaining = optionsContainer.children.length;
+
+            if (allFilled && optionsRemaining === 0) {
+                document.getElementById('win-message-modal').classList.remove('hidden');
+                totalPuzzlesSolved++;
+                // Move to the next puzzle index
+                currentPuzzleIndex = (currentPuzzleIndex + 1) % PUZZLE_SETS.length;
+                document.getElementById('explain-btn').disabled = false;
+            } else if (allFilled && optionsRemaining > 0) {
+                showNotification("🤔 The sequence is full, but you still have numbers left! Something is wrong.", 'error');
+            }
+        }
+
+        function loadNewPuzzle() {
+            document.getElementById('win-message-modal').classList.add('hidden');
+            document.getElementById('explain-btn').disabled = true;
+            
+            if (currentPuzzleIndex >= PUZZLE_SETS.length) {
+                currentPuzzleIndex = 0; // Loop back to the start
+                showNotification("You've completed all levels! Restarting from the beginning.", 'ai');
+            }
+
+            resetPuzzleState(PUZZLE_SETS[currentPuzzleIndex]);
+            renderSequence();
+            renderOptions();
+            showNotification(`New puzzle loaded! Challenge ${totalPuzzlesSolved + 1}`, 'info');
+        }
+
+        // --- Initialization ---
+        window.onload = loadNewPuzzle;
+    </script>
+</body>
+</html>

@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pattern Matchers: Visual Logic Quest | The Brain Quest</title>
+
+    <!-- Load Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fonts: Poppins (Body) and Fredoka (Titles/Game UI) -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Poppins:wght@400;600;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f8ff;
+        }
+        h1, h2, .game-title {
+            font-family: 'Fredoka', cursive;
+            letter-spacing: 0.5px;
+        }
+        .gradient-bg {
+            /* Logic theme background */
+            background: linear-gradient(135deg, #a855f7 0%, #d946ef 100%); 
+        }
+        .card-gradient {
+            background: linear-gradient(135deg, #ffffff 0%, #f3e7ff 100%);
+        }
+        .pattern-cell {
+            width: 5.5rem;
+            height: 5.5rem;
+            border: 4px solid #a78bfa;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            background-color: #fff;
+            box-shadow: 0 4px 0 0 #a78bfa;
+            transition: all 0.2s;
+        }
+        .empty-slot {
+            border: 4px dashed #a78bfa;
+            background-color: #f3e7ff;
+            cursor: pointer;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .selected-option {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.6);
+            border-color: #7c3aed;
+        }
+        .correct-answer {
+            background-color: #86efac; 
+            animation: pulse 0.5s;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 3px solid #fbbf24;
+            border-radius: 1rem;
+            padding: 0.75rem;
+            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+        }
+        /* Spinner CSS for loading state */
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 1.5rem;
+            height: 1.5rem;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .btn-level {
+            padding: 1rem 2rem;
+            font-size: 1.25rem;
+            font-weight: 800;
+            border-radius: 0.75rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 0 0 #7e22ce;
+        }
+        .btn-level:hover {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 0 #7e22ce;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen gradient-bg flex flex-col items-center">
+
+    <!-- Welcome Screen / Level Selector -->
+    <div id="welcome-screen" class="min-h-screen flex items-center justify-center p-4 w-full">
+        <div class="card-gradient rounded-3xl shadow-2xl p-8 max-w-lg w-full border-4 border-purple-600 text-center">
+            <h1 class="game-title text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 mb-4">
+                🧠 Pattern Matchers
+            </h1>
+            <p class="text-xl font-bold text-gray-700 mb-8">Ready to spot the rule? Choose your challenge!</p>
+            
+            <div class="space-y-4">
+                <button onclick="startGame('pre-k')" class="btn-level w-full bg-green-500 text-white hover:bg-green-600" style="box-shadow: 0 4px 0 0 #16a34a;">
+                    🟢 Pre-K (Simple AB Patterns)
+                </button>
+                <button onclick="startGame('beginner')" class="btn-level w-full bg-blue-500 text-white hover:bg-blue-600" style="box-shadow: 0 4px 0 0 #2563eb;">
+                    🔵 Beginner (3-Step Patterns)
+                </button>
+                <button onclick="startGame('intermediate')" class="btn-level w-full bg-yellow-500 text-white hover:bg-yellow-600" style="box-shadow: 0 4px 0 0 #f59e0b;">
+                    🟡 Intermediate (AAB, ABB, Growing)
+                </button>
+                <button onclick="startGame('advanced')" class="btn-level w-full bg-red-500 text-white hover:bg-red-600" style="box-shadow: 0 4px 0 0 #dc2626;">
+                    🔴 Advanced (Mixed & Complex Rules)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Screen (Initially Hidden) -->
+    <div id="game-screen" class="hidden w-full flex flex-col items-center">
+
+        <!-- Header & Navigation -->
+        <header class="w-full bg-white shadow-xl">
+            <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+                <a href="logic-games.html" class="text-2xl font-extrabold text-purple-600 hover:text-purple-800 transition">
+                    <span class="inline-block mr-2">⬅️</span> Back to Logic Hub
+                </a>
+                <div class="flex items-center space-x-3">
+                    <p class="text-lg font-bold text-gray-700 hidden sm:block">
+                        Difficulty: <span id="difficulty-display" class="text-red-600"></span>
+                    </p>
+                    <div class="stat-card text-center min-w-[100px] hidden sm:block">
+                        <p class="text-sm font-bold text-orange-700">⭐ SCORE</p>
+                        <p class="text-3xl font-black text-purple-700" id="score">0</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="py-8 w-full max-w-5xl mx-auto px-4">
+            
+            <!-- Game Title and Instructions -->
+            <div class="card-gradient rounded-3xl shadow-2xl p-6 mb-8 border-4 border-purple-400 text-center">
+                <h1 class="game-title text-5xl font-black text-purple-700 mb-2">🧠 Pattern Matchers</h1>
+                <p class="text-xl text-gray-700 font-semibold">Study the pattern, then choose the correct shape to complete the sequence!</p>
+            </div>
+
+            <!-- Notification Bar -->
+            <div id="notification-bar" class="hidden text-center p-3 rounded-xl font-black text-white mb-4 shadow-lg"></div>
+            
+            <!-- Puzzle Container -->
+            <div class="card-gradient rounded-3xl shadow-2xl p-6 sm:p-10 border-4 border-purple-400">
+
+                <!-- Pattern Display -->
+                <div id="pattern-container" class="flex flex-wrap justify-center gap-4 mb-10">
+                    <!-- Cells will be injected here -->
+                </div>
+
+                <!-- Pattern Selection Options -->
+                <h3 class="text-2xl font-bold text-purple-700 text-center mb-5">Which comes next?</h3>
+                <div id="options-container" class="flex flex-wrap justify-center gap-5">
+                    <!-- Options buttons will be injected here -->
+                </div>
+
+                <!-- Controls and Current Level -->
+                <div class="flex justify-between items-center mt-10 border-t pt-4 border-purple-300">
+                    <button onclick="showWelcomeScreen()" class="px-6 py-3 bg-red-500 text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition transform hover:scale-105">
+                        Change Level
+                    </button>
+                    <button onclick="loadNewPuzzle()" class="px-6 py-3 bg-blue-500 text-white font-bold rounded-xl shadow-lg hover:bg-blue-600 transition transform hover:scale-105">
+                        Next Puzzle
+                    </button>
+                </div>
+            </div>
+
+            <!-- Win Message Modal -->
+            <div id="win-message-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+                <div class="bg-gradient-to-r from-yellow-300 via-pink-400 to-purple-500 rounded-3xl shadow-2xl p-8 text-center border-4 border-yellow-400 max-w-sm w-full animate-pulse">
+                    <div class="text-8xl mb-3">🎉🏆</div>
+                    <h2 class="text-4xl font-black text-white mb-3 drop-shadow-lg">AWESOME!</h2>
+                    <p class="text-white text-xl font-bold drop-shadow mb-6">You spotted the rule!</p>
+                    <button onclick="loadNewPuzzle()" class="px-6 py-3 bg-green-500 text-white font-bold rounded-xl shadow-xl hover:bg-green-600 transition">
+                        Next Challenge!
+                    </button>
+                    <!-- LLM-Powered Rule Explainer Button -->
+                    <button id="explain-btn" onclick="explainRule()" class="mt-4 px-6 py-3 bg-purple-600 text-white font-bold rounded-xl shadow-xl hover:bg-purple-700 transition">
+                        ✨ Tell Me The Rule!
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Explanation Modal -->
+            <div id="explanation-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+                <div class="bg-white rounded-3xl shadow-2xl p-8 text-center border-4 border-purple-600 max-w-lg w-full">
+                    <h2 class="text-3xl font-black text-purple-700 mb-4">Rule Explanation</h2>
+                    <div id="explanation-content" class="text-gray-700 text-lg font-medium mb-6">
+                        <div class="spinner mx-auto bg-purple-600"></div>
+                        <p class="mt-4 text-purple-700 font-semibold">The AI Tutor is analyzing the pattern...</p>
+                    </div>
+                    <button onclick="document.getElementById('explanation-modal').classList.add('hidden')" class="px-6 py-3 bg-red-500 text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition">
+                        Close
+                    </button>
+                </div>
+            </div>
+
+
+        </main>
+    </div>
+
+    <script>
+        // --- Gemini API Configuration ---
+        const API_KEY = ""; // Canvas will provide this
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
+        let isFetching = false;
+        
+        // --- Game State ---
+        let score = 0;
+        let currentPuzzleIndex = 0;
+        let currentPattern = [];
+        let missingElement = null; // The correct answer element
+        let currentDifficulty = 'beginner';
+        let levelPatterns = []; // Puzzles for the current difficulty only
+
+        const PATTERNS = {
+            'pre-k': [
+                // Simple ABAB/AABB
+                { pattern: ['🔴', '🟦', '🔴', '🟦', '🔴'], answer: '🟦', distractors: ['🟨', '🟢'], rule: 'The colors repeat in an easy Red, Blue pattern.' },
+                { pattern: ['⭐', '🌙', '⭐', '🌙', '⭐'], answer: '🌙', distractors: ['☀️', '☁️'], rule: 'Alternating Star and Moon shapes.' },
+                { pattern: ['🍎', '🍎', '🍌', '🍌', '🍎'], answer: '🍎', distractors: ['🍊', '🍇'], rule: 'Two of each fruit, but the last one starts a new pair.' },
+            ],
+            'beginner': [
+                // Simple 3-element sequences
+                { pattern: ['🟥', '🟩', '🟦', '🟥', '🟩'], answer: '🟦', distractors: ['🟨', '🟪'], rule: 'The sequence of Red, Green, Blue squares repeats.' },
+                { pattern: ['🐶', '🐱', '🐭', '🐶', '🐱'], answer: '🐭', distractors: ['🐰', '🦊'], rule: 'Three animals repeat: Dog, Cat, Mouse.' },
+                { pattern: ['1', '2', '3', '1', '2'], answer: '3', distractors: ['4', '5'], rule: 'The numbers 1, 2, and 3 keep repeating.' },
+            ],
+            'intermediate': [
+                // AAB, ABB, Growing/Shrinking
+                { pattern: ['🟡', '🟡', '🟢', '🟡', '🟡'], answer: '🟢', distractors: ['🟣', '🟠'], rule: 'Two Yellow circles, then one Green circle, repeating (AAB pattern).' },
+                { pattern: ['🟩', '🟦', '🟦', '🟩', '🟦'], answer: '🟦', distractors: ['🟥', '🟨'], rule: 'One Green square followed by two Blue squares, repeating (ABB pattern).' },
+                { pattern: ['⚫', '⚫⚫', '⚫⚫⚫', '⚫⚫⚫⚫'], answer: '⚫⚫⚫⚫⚫', distractors: ['⚫', '⚫⚫⚫⚫'], rule: 'The number of black circles increases by one each time.' },
+            ],
+            'advanced': [
+                // Alternating rules or two changes at once
+                { pattern: ['A', 'A', 'B', 'B', 'C', 'C', 'D'], answer: 'D', distractors: ['C', 'E'], rule: 'Letters are increasing (A, B, C, D) and each letter is shown twice (AA, BB, CC).' },
+                { pattern: ['⬆️', '⬇️', '⬅️', '➡️', '⬆️'], answer: '⬇️', distractors: ['⬇️⬇️', '⬆️⬆️'], rule: 'The arrows cycle through the four cardinal directions: Up, Down, Left, Right.' },
+                { pattern: ['🔴🟦', '🟦🔴', '🔴🟦', '🟦🔴'], answer: '🔴🟦', distractors: ['🟦🟦', '🔴🔴'], rule: 'The two colors switch positions in each step (Red-Blue, then Blue-Red).' },
+            ]
+        };
+        
+        const scoreElement = document.getElementById('score');
+        const difficultyDisplay = document.getElementById('difficulty-display');
+        const patternContainer = document.getElementById('pattern-container');
+        const optionsContainer = document.getElementById('options-container');
+        const notificationBar = document.getElementById('notification-bar');
+
+        // --- Utility Functions ---
+
+        function showNotification(message, type = 'info') {
+            notificationBar.textContent = message;
+            notificationBar.className = 'text-center p-3 rounded-xl font-black text-white mb-4 shadow-lg';
+            
+            if (type === 'error') {
+                notificationBar.classList.add('bg-red-500');
+            } else if (type === 'success') {
+                notificationBar.classList.add('bg-green-500');
+            } else if (type === 'ai') {
+                notificationBar.classList.add('bg-purple-600');
+            } else {
+                notificationBar.classList.add('bg-blue-500');
+            }
+            notificationBar.classList.remove('hidden');
+            
+            setTimeout(() => {
+                notificationBar.classList.add('hidden');
+            }, 4000);
+        }
+
+        function updateScore(points) {
+            score += points;
+            scoreElement.textContent = Math.max(0, score);
+        }
+
+        // --- LLM Integration Functions ---
+        async function fetchAiContent(userQuery) {
+            if (isFetching) return "Please wait for the current explanation to finish!";
+
+            isFetching = true;
+            
+            // Show spinner in modal
+            const explainerContent = document.getElementById('explanation-content');
+            explainerContent.innerHTML = '<div class="spinner mx-auto bg-purple-600"></div><p class="mt-4 text-purple-700 font-semibold">The AI Tutor is analyzing the pattern...</p>';
+
+            const systemPrompt = "You are a friendly, encouraging, and intelligent tutor for children (ages 6-10). Your goal is to provide a single, simple, clear, and fun explanation of a visual pattern. Use simple words and emojis. Do not explain the next step, explain the overall rule.";
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API call failed with status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I can't generate an explanation right now. Try again soon!";
+                return text;
+
+            } catch (error) {
+                console.error("Gemini API Error:", error);
+                // Simple retry mechanism using exponential backoff is omitted for brevity but recommended for production
+                return "AI Tutor failed to connect. Check your network!";
+            } finally {
+                isFetching = false;
+            }
+        }
+        
+        // --- LLM Feature: Explain the Rule ---
+        async function explainRule() {
+            document.getElementById('explanation-modal').classList.remove('hidden');
+            
+            // Get the current puzzle data (currentPuzzleIndex is already incremented, so use the previous index)
+            const puzzleIndex = currentPuzzleIndex > 0 ? currentPuzzleIndex - 1 : levelPatterns.length - 1;
+            const knownRule = levelPatterns[puzzleIndex].rule; 
+            const solvedPattern = levelPatterns[puzzleIndex].pattern.join(', '); // Use the full pattern array
+
+            const prompt = `The pattern is: [${solvedPattern}]. The simple rule is: "${knownRule}". Explain this rule in one simple, clear, and encouraging sentence to a child.`;
+            
+            // Fetch explanation from LLM
+            const explanation = await fetchAiContent(prompt);
+
+            // Update the modal content
+            document.getElementById('explanation-content').innerHTML = 
+                `<p class="text-xl font-bold text-purple-700">The Rule Was:</p>
+                 <p class="text-xl mt-2">${explanation}</p>`;
+        }
+
+
+        // --- Render Functions ---
+
+        function renderPattern() {
+            patternContainer.innerHTML = '';
+            
+            // Display all but the last element of the pattern
+            const patternToDisplay = currentPattern.slice(0, currentPattern.length - 1);
+
+            patternToDisplay.forEach((item) => {
+                const cell = document.createElement('div');
+                cell.classList.add('pattern-cell', 'select-none');
+                cell.textContent = item;
+                patternContainer.appendChild(cell);
+            });
+            
+            // Add the missing element slot
+            const missingCell = document.createElement('div');
+            missingCell.id = 'missing-slot';
+            missingCell.classList.add('pattern-cell', 'empty-slot');
+            missingCell.textContent = '?';
+            patternContainer.appendChild(missingCell);
+
+            document.getElementById('explain-btn').disabled = true;
+        }
+
+        function renderOptions() {
+            optionsContainer.innerHTML = '';
+            
+            // Get the correct answer from the last element of the current puzzle's pattern array
+            const puzzleData = levelPatterns[currentPuzzleIndex];
+            const answer = puzzleData.pattern[puzzleData.pattern.length - 1]; 
+            
+            const options = [answer, ...puzzleData.distractors];
+            
+            // Shuffle options
+            options.sort(() => Math.random() - 0.5);
+
+            options.forEach(item => {
+                const btn = document.createElement('button');
+                btn.classList.add('pattern-cell', 'select-none', 'hover:scale-105', 'hover:shadow-lg', 'transition');
+                btn.textContent = item;
+                btn.onclick = () => checkAnswer(item, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+        
+        // --- Game Flow ---
+
+        function checkAnswer(selectedItem, button) {
+            const missingSlot = document.getElementById('missing-slot');
+
+            if (missingSlot.classList.contains('correct-answer')) return; // Already solved
+
+            // Clear previous selections
+            document.querySelectorAll('#options-container button').forEach(btn => btn.classList.remove('selected-option'));
+            button.classList.add('selected-option');
+            
+            // The correct answer is the last element of the full pattern array
+            const correctAnswer = currentPattern[currentPattern.length - 1];
+
+            if (selectedItem === correctAnswer) {
+                // Correct Answer!
+                missingSlot.textContent = selectedItem;
+                missingSlot.classList.remove('empty-slot', 'border-dashed');
+                missingSlot.classList.add('correct-answer');
+                
+                showNotification('🎉 Correct! You are a Pattern Hero! (+30 Points)', 'success');
+                updateScore(30);
+                
+                // Show win modal after a short delay
+                setTimeout(() => {
+                    document.getElementById('win-message-modal').classList.remove('hidden');
+                    document.getElementById('explain-btn').disabled = false;
+                }, 800);
+
+            } else {
+                // Incorrect Answer
+                showNotification('❌ Not quite! Look closer at the rule. (-5 Points)', 'error');
+                updateScore(-5);
+            }
+        }
+
+        function loadNewPuzzle() {
+            document.getElementById('win-message-modal').classList.add('hidden');
+            
+            if (currentPuzzleIndex >= levelPatterns.length) {
+                // Reset level index after all puzzles in the difficulty are completed
+                currentPuzzleIndex = 0; 
+                showNotification(`You've completed all ${currentDifficulty.toUpperCase()} patterns! Restarting the level.`, 'ai');
+            }
+
+            const puzzleData = levelPatterns[currentPuzzleIndex];
+            
+            // The full pattern array is used here
+            currentPattern = puzzleData.pattern;
+            
+            // Update UI
+            difficultyDisplay.textContent = currentDifficulty.toUpperCase();
+            renderPattern();
+            renderOptions();
+            showNotification(`Level ${currentPuzzleIndex + 1}: Find the missing shape!`, 'info');
+
+            currentPuzzleIndex++;
+        }
+
+        function startGame(difficulty) {
+            currentDifficulty = difficulty;
+            levelPatterns = PATTERNS[difficulty];
+            currentPuzzleIndex = 0; // Start at the first puzzle of the selected difficulty
+            score = 0; // Reset score on new difficulty start
+
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            
+            scoreElement.textContent = 0;
+            loadNewPuzzle(); // Load the first puzzle
+        }
+
+        function showWelcomeScreen() {
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('welcome-screen').classList.remove('hidden');
+        }
+
+        // --- Initialization ---
+        window.onload = () => {
+            // Check if a difficulty was saved (optional for future persistence)
+            // For now, just show the welcome screen
+        };
+    </script>
+</body>
+</html>

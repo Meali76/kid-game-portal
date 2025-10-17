@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maze Solver: Logic Gates Quest | The Brain Quest</title>
+
+    <!-- Load Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fonts: Poppins (Body) and Fredoka (Titles/Game UI) -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Poppins:wght@400;600;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f8ff;
+        }
+        h1, h2, .game-title {
+            font-family: 'Fredoka', cursive;
+            letter-spacing: 0.5px;
+        }
+        .gradient-bg {
+            /* Logic theme background */
+            background: linear-gradient(135deg, #a855f7 0%, #d946ef 100%); 
+        }
+        .card-gradient {
+            background: linear-gradient(135deg, #ffffff 0%, #f3e7ff 100%);
+        }
+        .maze-grid {
+            display: grid;
+            border: 4px solid #7c3aed;
+            background-color: #fff;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            margin: 0 auto; /* Center the grid */
+        }
+        .cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+        .wall {
+            background-color: #7c3aed;
+            border: 1px solid #7c3aed;
+        }
+        .path {
+            background-color: #f0f8ff;
+            border: 1px solid #c084fc;
+        }
+        .start {
+            background-color: #4ade80; /* Green */
+            font-size: 2rem;
+        }
+        .end {
+            background-color: #f87171; /* Red */
+            font-size: 2rem;
+        }
+        .player {
+            background-color: #fbbf24; /* Yellow */
+            animation: bounce 0.5s infinite alternate;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 3px solid #fbbf24;
+            border-radius: 1rem;
+            padding: 0.75rem;
+            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+        }
+        .control-btn {
+            background-color: #f59e0b;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 900;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 0 0 #d97706;
+            transition: all 0.1s;
+        }
+        .control-btn:active {
+            transform: translateY(3px);
+            box-shadow: none;
+        }
+
+        @keyframes bounce {
+            from { transform: scale(1.0); }
+            to { transform: scale(1.1); }
+        }
+        .btn-level {
+            padding: 1rem 2rem;
+            font-size: 1.25rem;
+            font-weight: 800;
+            border-radius: 0.75rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 0 0 #7e22ce;
+        }
+        .btn-level:hover {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 0 #7e22ce;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen gradient-bg flex flex-col items-center">
+
+    <!-- Welcome Screen / Level Selector -->
+    <div id="welcome-screen" class="min-h-screen flex items-center justify-center p-4 w-full">
+        <div class="card-gradient rounded-3xl shadow-2xl p-8 max-w-lg w-full border-4 border-purple-600 text-center">
+            <h1 class="game-title text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 mb-4">
+                🗺️ Maze Solver Quest
+            </h1>
+            <p class="text-xl font-bold text-gray-700 mb-8">Can you guide the robot from START to END? Choose your maze difficulty!</p>
+            
+            <div class="space-y-4">
+                <button onclick="startGame('easy')" class="btn-level w-full bg-green-500 text-white hover:bg-green-600" style="box-shadow: 0 4px 0 0 #16a34a;">
+                    🟢 Easy (5x5 Grid)
+                </button>
+                <button onclick="startGame('medium')" class="btn-level w-full bg-blue-500 text-white hover:bg-blue-600" style="box-shadow: 0 4px 0 0 #2563eb;">
+                    🔵 Medium (8x8 Grid)
+                </button>
+                <button onclick="startGame('hard')" class="btn-level w-full bg-red-500 text-white hover:bg-red-600" style="box-shadow: 0 4px 0 0 #dc2626;">
+                    🔴 Hard (10x10 Grid)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Screen (Initially Hidden) -->
+    <div id="game-screen" class="hidden w-full flex flex-col items-center">
+
+        <!-- Header & Navigation -->
+        <header class="w-full bg-white shadow-xl">
+            <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+                <a href="logic-games.html" class="text-2xl font-extrabold text-purple-600 hover:text-purple-800 transition">
+                    <span class="inline-block mr-2">⬅️</span> Back to Logic Hub
+                </a>
+                <div class="flex items-center space-x-3">
+                    <p class="text-lg font-bold text-gray-700 hidden sm:block">
+                        Difficulty: <span id="difficulty-display" class="text-red-600"></span>
+                    </p>
+                    <div class="stat-card text-center min-w-[100px] hidden sm:block">
+                        <p class="text-sm font-bold text-orange-700">👣 MOVES</p>
+                        <p class="text-3xl font-black text-purple-700" id="moves-count">0</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="py-8 w-full max-w-4xl mx-auto px-4">
+            
+            <!-- Game Title and Instructions -->
+            <div class="card-gradient rounded-3xl shadow-2xl p-6 mb-8 border-4 border-purple-400 text-center">
+                <h1 class="game-title text-5xl font-black text-purple-700 mb-2">🤖 Maze Runner</h1>
+                <p class="text-xl text-gray-700 font-semibold">Use the arrows to find the shortest path from Start (🟢) to End (🔴)!</p>
+            </div>
+
+            <!-- Maze and Controls Container -->
+            <div class="flex flex-col md:flex-row justify-center items-start gap-8">
+                
+                <!-- Maze Grid -->
+                <div id="maze-container" class="w-full md:w-3/4 flex justify-center">
+                    <div id="maze-grid" class="maze-grid">
+                        <!-- Maze Cells will be injected here -->
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="w-full md:w-1/4 flex flex-col items-center p-4 card-gradient rounded-xl border-4 border-purple-400">
+                    <h3 class="text-2xl font-bold text-purple-700 mb-4">Control Robot</h3>
+                    
+                    <!-- D-Pad Style Controls -->
+                    <div class="flex flex-col items-center space-y-2">
+                        <button onclick="movePlayer(0, -1)" class="control-btn mb-1">▲</button>
+                        <div class="flex space-x-2">
+                            <button onclick="movePlayer(-1, 0)" class="control-btn mr-4">◀</button>
+                            <button onclick="movePlayer(1, 0)" class="control-btn">▶</button>
+                        </div>
+                        <button onclick="movePlayer(0, 1)" class="control-btn mt-1">▼</button>
+                    </div>
+                    
+                    <div class="mt-8 space-y-3 w-full">
+                        <button onclick="resetMaze()" class="w-full px-4 py-3 bg-red-500 text-white font-bold rounded-xl shadow-lg hover:bg-red-600 transition">
+                            🔄 Restart Maze
+                        </button>
+                        <button onclick="showWelcomeScreen()" class="w-full px-4 py-3 bg-indigo-500 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-600 transition">
+                            Change Difficulty
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Win Message Modal -->
+            <div id="win-message-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+                <div class="bg-gradient-to-r from-yellow-300 via-pink-400 to-purple-500 rounded-3xl shadow-2xl p-8 text-center border-4 border-yellow-400 max-w-sm w-full animate-pulse">
+                    <div class="text-8xl mb-3">🎉🏆</div>
+                    <h2 class="text-4xl font-black text-white mb-3 drop-shadow-lg">YOU SOLVED IT!</h2>
+                    <p class="text-white text-xl font-bold drop-shadow mb-6">Total Moves: <span id="final-moves"></span></p>
+                    <button onclick="loadNewMaze()" class="px-6 py-3 bg-green-500 text-white font-bold rounded-xl shadow-xl hover:bg-green-600 transition">
+                        Next Maze Challenge!
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // --- Game State ---
+        let mazeGrid = [];
+        let player = { x: 0, y: 0 };
+        let end = { x: 0, y: 0 };
+        let size = 5;
+        let moves = 0;
+        let currentDifficulty = 'easy';
+
+        const MAZES = {
+            easy: [
+                // 5x5 Maze 
+                // 1 = Wall, 0 = Path, 2 = Start, 3 = End
+                [[2, 0, 1, 0, 1],
+                 [1, 0, 1, 0, 1],
+                 [1, 0, 0, 0, 1],
+                 [1, 1, 1, 0, 1],
+                 [1, 0, 0, 0, 3]],
+                 
+                [[1, 0, 1, 0, 3],
+                 [1, 0, 0, 0, 1],
+                 [2, 1, 1, 1, 1],
+                 [0, 0, 0, 0, 1],
+                 [1, 1, 1, 0, 1]]
+            ],
+            medium: [
+                // 8x8 Maze
+                [[2, 0, 1, 0, 0, 0, 1, 0],
+                 [1, 0, 1, 1, 1, 0, 1, 0],
+                 [1, 0, 0, 0, 0, 0, 0, 0],
+                 [1, 0, 1, 1, 1, 1, 1, 1],
+                 [0, 0, 0, 0, 0, 0, 0, 1],
+                 [1, 1, 1, 1, 1, 1, 0, 1],
+                 [0, 0, 0, 0, 0, 0, 0, 0],
+                 [1, 1, 1, 1, 1, 1, 1, 3]]
+            ],
+            hard: [
+                // 10x10 Maze
+                [[2, 0, 1, 0, 0, 0, 1, 0, 1, 0],
+                 [1, 0, 1, 1, 1, 0, 1, 0, 1, 0],
+                 [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                 [1, 1, 1, 0, 1, 1, 1, 1, 1, 0],
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                 [1, 1, 1, 1, 1, 1, 1, 0, 1, 1],
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                 [1, 1, 1, 0, 1, 1, 1, 1, 1, 0],
+                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                 [1, 1, 1, 1, 1, 1, 1, 0, 1, 3]]
+            ]
+        };
+
+        const mazeGridElement = document.getElementById('maze-grid');
+        const movesCountElement = document.getElementById('moves-count');
+
+        // --- Core Game Functions ---
+
+        function setupMaze(difficulty) {
+            currentDifficulty = difficulty;
+            const puzzleSet = MAZES[difficulty];
+            const randomMaze = puzzleSet[Math.floor(Math.random() * puzzleSet.length)];
+            
+            mazeGrid = randomMaze;
+            size = randomMaze.length;
+            moves = 0;
+            
+            // Find Start and End points
+            for (let y = 0; y < size; y++) {
+                for (let x = 0; x < size; x++) {
+                    if (mazeGrid[y][x] === 2) {
+                        player = { x, y };
+                    } else if (mazeGrid[y][x] === 3) {
+                        end = { x, y };
+                    }
+                }
+            }
+        }
+
+        function renderMaze() {
+            mazeGridElement.innerHTML = '';
+            mazeGridElement.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+            mazeGridElement.style.width = `${size * 50}px`; // Adjust grid size dynamically
+            
+            for (let y = 0; y < size; y++) {
+                for (let x = 0; x < size; x++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.dataset.x = x;
+                    cell.dataset.y = y;
+                    
+                    if (mazeGrid[y][x] === 1) {
+                        cell.classList.add('wall');
+                    } else if (mazeGrid[y][x] === 0 || mazeGrid[y][x] === 2 || mazeGrid[y][x] === 3) {
+                        cell.classList.add('path');
+                    }
+                    
+                    if (mazeGrid[y][x] === 2) {
+                        cell.classList.add('start');
+                        cell.textContent = 'START';
+                    }
+                    if (mazeGrid[y][x] === 3) {
+                        cell.classList.add('end');
+                        cell.textContent = 'END';
+                    }
+                    
+                    mazeGridElement.appendChild(cell);
+                }
+            }
+            updatePlayerPosition();
+            movesCountElement.textContent = moves;
+        }
+
+        function updatePlayerPosition() {
+            // Remove player from all cells first
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.classList.remove('player');
+                cell.textContent = '';
+                // Restore START/END labels if player moved off them
+                if (mazeGrid[parseInt(cell.dataset.y)][parseInt(cell.dataset.x)] === 2) cell.textContent = 'START';
+                if (mazeGrid[parseInt(cell.dataset.y)][parseInt(cell.dataset.x)] === 3) cell.textContent = 'END';
+            });
+
+            // Find the cell where the player is now
+            const playerCell = document.querySelector(`.cell[data-x="${player.x}"][data-y="${player.y}"]`);
+            if (playerCell) {
+                playerCell.classList.add('player');
+                playerCell.textContent = '🤖';
+            }
+        }
+
+        function movePlayer(dx, dy) {
+            const newX = player.x + dx;
+            const newY = player.y + dy;
+
+            // Check boundaries
+            if (newX < 0 || newX >= size || newY < 0 || newY >= size) {
+                return;
+            }
+
+            // Check if it's a wall
+            if (mazeGrid[newY][newX] === 1) {
+                // Cannot move into a wall
+                return;
+            }
+
+            // Move the player
+            player.x = newX;
+            player.y = newY;
+            moves++;
+            movesCountElement.textContent = moves;
+            updatePlayerPosition();
+
+            // Check for win condition
+            if (newX === end.x && newY === end.y) {
+                winGame();
+            }
+        }
+
+        function winGame() {
+            document.getElementById('final-moves').textContent = moves;
+            document.getElementById('win-message-modal').classList.remove('hidden');
+        }
+
+        function resetMaze() {
+            // Re-render the current maze and reset moves
+            setupMaze(currentDifficulty); // Re-run setup to reset player/start positions correctly
+            renderMaze();
+        }
+
+        // --- Game Flow & UI ---
+
+        function startGame(difficulty) {
+            setupMaze(difficulty);
+            document.getElementById('difficulty-display').textContent = difficulty.toUpperCase();
+            
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('win-message-modal').classList.add('hidden');
+            
+            renderMaze();
+        }
+
+        function loadNewMaze() {
+            document.getElementById('win-message-modal').classList.add('hidden');
+            // Simply call startGame with current difficulty to load a new random maze of the same size
+            startGame(currentDifficulty); 
+        }
+
+        function showWelcomeScreen() {
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('welcome-screen').classList.remove('hidden');
+            document.getElementById('win-message-modal').classList.add('hidden');
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (document.getElementById('game-screen').classList.contains('hidden')) return; // Only process keys when game screen is visible
+            
+            switch (e.key) {
+                case 'ArrowUp':
+                case 'w':
+                    e.preventDefault();
+                    movePlayer(0, -1);
+                    break;
+                case 'ArrowDown':
+                case 's':
+                    e.preventDefault();
+                    movePlayer(0, 1);
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                    e.preventDefault();
+                    movePlayer(-1, 0);
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                    e.preventDefault();
+                    movePlayer(1, 0);
+                    break;
+            }
+        });
+
+        // Initialize on load to show the welcome screen
+        window.onload = () => {
+             // Ensure welcome screen is shown first
+             showWelcomeScreen();
+        };
+    </script>
+</body>
+</html>

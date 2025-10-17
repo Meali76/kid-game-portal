@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Sudoku: Beginner to Advanced | The Brain Quest</title>
+
+    <!-- Load Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fonts: Poppins (Body) and Fredoka (Titles/Game UI) -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Poppins:wght=400;600;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f8ff;
+        }
+        /* New Font for Game Titles and numbers for a kid-friendly look */
+        h1, h2, .game-title, .sudoku-cell, .number-btn {
+            font-family: 'Fredoka', cursive;
+            letter-spacing: 0.5px;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        }
+        .card-gradient {
+            background: linear-gradient(135deg, #ffffff 0%, #f3e7ff 100%);
+        }
+        
+        /* Sudoku Cell Styling */
+        .sudoku-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            border: 2px solid #a78bfa; /* Light Purple Border */
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .sudoku-cell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+        }
+        .sudoku-cell input {
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            border: none;
+            outline: none;
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: transparent;
+            font-family: 'Fredoka', sans-serif;
+            color: #7c3aed;
+        }
+        /* Prefilled and User Input Styles */
+        .prefilled {
+            background: linear-gradient(135deg, #a78bfa 0%, #c084fc 100%);
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            font-weight: 900;
+        }
+        .user-input {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); /* Yellowish input */
+        }
+        .selected {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important; /* Yellow highlight */
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.6);
+            transform: scale(1.05); /* Slightly less dramatic scale for selected state */
+        }
+        /* Feedback Animations */
+        .correct {
+            background: linear-gradient(135deg, #86efac 0%, #4ade80 100%) !important;
+            animation: pulse 0.5s;
+        }
+        .incorrect {
+            background: linear-gradient(135deg, #fca5a5 0%, #f87171 100%) !important;
+            animation: shake 0.5s;
+        }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+        /* Grid Layouts for Different Sizes */
+        .grid-4x4 { grid-template-columns: repeat(4, 1fr); max-width: 400px; }
+        .grid-6x6 { grid-template-columns: repeat(6, 1fr); max-width: 480px; }
+        .grid-9x9 { grid-template-columns: repeat(9, 1fr); max-width: 540px; }
+        
+        /* Box Separators */
+        .thick-border-right { border-right: 4px solid #7c3aed !important; }
+        .thick-border-bottom { border-bottom: 4px solid #7c3aed !important; }
+
+        /* Button Styles */
+        .number-btn { width: 3.5rem; height: 3.5rem; font-size: 1.75rem; transition: all 0.3s; }
+        .number-btn:hover { transform: scale(1.1) rotate(2deg); }
+        .btn-kids { background: linear-gradient(135deg, #34d399 0%, #10b981 100%); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4); }
+        .btn-beginner { background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%); box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4); }
+        .btn-intermediate { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4); }
+        .btn-advanced { background: linear-gradient(135deg, #fb923c 0%, #f97316 100%); box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4); }
+        .btn-expert { background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%); box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4); }
+        .welcome-card { background: linear-gradient(135deg, #ffffff 0%, #faf5ff 100%); border: 4px solid #a78bfa; }
+    </style>
+</head>
+
+<body class="min-h-screen gradient-bg">
+
+    <!-- Welcome Screen -->
+    <div id="welcome-screen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="welcome-card rounded-3xl shadow-2xl p-8 max-w-md w-full">
+            <div class="text-center mb-8">
+                <h1 class="game-title text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 mb-3 animate-pulse">
+                    🧩 Ultimate Sudoku
+                </h1>
+                <p class="text-xl font-bold text-gray-700">From Beginner to Expert! 🌟</p>
+            </div>
+            
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-xl font-bold text-purple-700 mb-3">🎮 Your Name:</label>
+                    <input type="text" id="player-name" placeholder="Enter your name" 
+                           class="w-full px-5 py-4 border-4 border-purple-400 rounded-2xl focus:outline-none focus:border-purple-600 text-xl font-bold text-purple-700 shadow-lg">
+                    <p id="name-error" class="text-red-500 font-semibold mt-2 hidden">Please tell us your name to begin!</p>
+                </div>
+                
+                <div>
+                    <label class="block text-xl font-bold text-purple-700 mb-3">🎯 Select Your Challenge:</label>
+                    <div class="space-y-3">
+                        <button onclick="startGame('4x4', 'Kids (4x4)')" 
+                                class="w-full py-5 btn-kids text-white rounded-2xl font-black text-xl hover:shadow-2xl transform hover:scale-105 transition">
+                            🌟 KIDS - 4×4 Grid
+                        </button>
+                        <button onclick="startGame('6x6', 'Beginner (6x6)')" 
+                                class="w-full py-5 btn-beginner text-white rounded-2xl font-black text-xl hover:shadow-2xl transform hover:scale-105 transition">
+                            🎯 BEGINNER - 6×6 Grid
+                        </button>
+                        <button onclick="startGame('9x9-easy', 'Intermediate (9x9 Easy)')" 
+                                class="w-full py-5 btn-intermediate text-white rounded-2xl font-black text-xl hover:shadow-2xl transform hover:scale-105 transition">
+                            🔥 INTERMEDIATE - 9×9 Easy
+                        </button>
+                        <button onclick="startGame('9x9-medium', 'Advanced (9x9 Medium)')" 
+                                class="w-full py-5 btn-advanced text-white rounded-2xl font-black text-xl hover:shadow-2xl transform hover:scale-105 transition">
+                            💪 ADVANCED - 9×9 Medium
+                        </button>
+                        <button onclick="startGame('9x9-hard', 'Expert (9x9 Hard)')" 
+                                class="w-full py-5 btn-expert text-white rounded-2xl font-black text-xl hover:shadow-2xl transform hover:scale-105 transition">
+                            🏆 EXPERT - 9×9 Hard
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="hidden min-h-screen p-4">
+        <div class="max-w-6xl mx-auto">
+            
+            <!-- Header/Stats -->
+            <div class="card-gradient rounded-3xl shadow-2xl p-6 mb-4 border-4 border-purple-300">
+                <div class="flex flex-wrap justify-between items-center gap-4">
+                    <a href="logic-games.html" class="text-2xl font-extrabold text-purple-600 hover:text-purple-800 transition">
+                        <span class="inline-block mr-2">⬅️</span> Back to Logic Hub
+                    </a>
+                    
+                    <div>
+                        <h2 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
+                            👋 Hi, <span id="display-name"></span>!
+                        </h2>
+                        <p class="text-xl font-bold text-purple-600">Level: <span id="display-level" class="text-pink-600"></span></p>
+                    </div>
+                    
+                    <div class="flex gap-4 flex-wrap justify-center">
+                        <div class="stat-card text-center min-w-[100px]">
+                            <p class="text-sm font-bold text-orange-700">⭐ SCORE</p>
+                            <p class="text-3xl font-black text-purple-700" id="score">0</p>
+                        </div>
+                        <div class="stat-card text-center min-w-[100px]">
+                            <p class="text-sm font-bold text-orange-700">❌ MISTAKES</p>
+                            <p class="text-3xl font-black text-red-600" id="mistakes">0</p>
+                        </div>
+                        <div class="stat-card text-center min-w-[100px]">
+                            <p class="text-sm font-bold text-orange-700">⏱️ TIME</p>
+                            <p class="text-3xl font-black text-blue-600" id="timer">0:00</p>
+                        </div>
+                    </div>
+                    
+                    <button onclick="showWelcome()" 
+                            class="px-5 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-black rounded-2xl hover:shadow-xl transform hover:scale-110 transition text-lg">
+                        🔄 NEW LEVEL
+                    </button>
+                </div>
+            </div>
+
+            <!-- Game Notifications -->
+            <div id="game-notification" class="text-center p-3 rounded-xl font-black text-white mb-4 hidden"></div>
+
+            <!-- Win Message -->
+            <div id="win-message" class="hidden bg-gradient-to-r from-yellow-300 via-pink-400 to-purple-500 rounded-3xl shadow-2xl p-8 mb-4 text-center border-4 border-yellow-400 animate-pulse">
+                <div class="text-8xl mb-3">🎉🏆🎉</div>
+                <h2 class="text-5xl font-black text-white mb-3 drop-shadow-lg">CONGRATULATIONS!</h2>
+                <p class="text-white text-2xl font-bold drop-shadow" id="win-text"></p>
+            </div>
+
+            <!-- Game Board and Controls -->
+            <div class="card-gradient rounded-3xl shadow-2xl p-4 sm:p-8 border-4 border-purple-300">
+                <div class="flex flex-col lg:flex-row justify-center items-start gap-8">
+                    
+                    <!-- Sudoku Grid -->
+                    <div class="flex justify-center w-full lg:w-auto">
+                        <div id="sudoku-grid" class="border-8 border-purple-600 rounded-2xl overflow-hidden shadow-2xl"></div>
+                    </div>
+
+                    <!-- Side Controls -->
+                    <div class="w-full lg:w-auto flex flex-col items-center">
+                        
+                        <!-- Number Buttons -->
+                        <h4 class="text-2xl font-bold text-purple-700 mb-3 mt-4 lg:mt-0">Select a Number:</h4>
+                        <div class="flex justify-center gap-2 sm:gap-3 flex-wrap mb-6" id="number-buttons"></div>
+
+                        <!-- Control Buttons -->
+                        <h4 class="text-2xl font-bold text-purple-700 mb-3 mt-4">Tools:</h4>
+                        <div class="flex flex-col gap-4 w-full max-w-xs">
+                            <button onclick="giveHint()" 
+                                    class="w-full py-3 bg-gradient-to-r from-yellow-400 to-orange-400 text-white font-black rounded-2xl hover:shadow-xl transform hover:scale-105 transition text-lg">
+                                💡 GIVE HINT (-15 Pts)
+                            </button>
+                            <button onclick="checkSolution()" 
+                                    class="w-full py-3 bg-gradient-to-r from-green-400 to-emerald-500 text-white font-black rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition text-lg">
+                                ✓ CHECK SOLUTION
+                            </button>
+                            <button onclick="clearBoard()" 
+                                    class="w-full py-3 bg-gradient-to-r from-red-400 to-pink-500 text-white font-black rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition text-lg">
+                                🗑️ CLEAR INPUTS
+                            </button>
+                            <button onclick="resetGame()" 
+                                    class="w-full py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition text-lg">
+                                🔄 RESTART PUZZLE
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        let currentGrid = [];
+        let solution = [];
+        let initialGrid = [];
+        let selectedCell = null;
+        let gridSize = 4;
+        let boxSize = 2;
+        let score = 0;
+        let mistakes = 0;
+        let timer = 0;
+        let timerInterval = null;
+        let playerName = '';
+        let currentLevel = '';
+        let gameWon = false;
+        let hintsUsed = 0;
+
+        // Puzzle Libraries
+        const PUZZLES_4X4 = [
+            {
+                puzzle: [[1,0,3,0],[0,4,0,2],[2,0,4,0],[0,3,0,1]],
+                solution: [[1,2,3,4],[3,4,1,2],[2,1,4,3],[4,3,2,1]]
+            },
+            {
+                puzzle: [[0,3,0,1],[4,0,2,0],[0,2,0,4],[3,0,1,0]],
+                solution: [[2,3,4,1],[4,1,2,3],[1,2,3,4],[3,4,1,2]]
+            },
+            {
+                puzzle: [[0,0,2,3],[3,2,0,0],[0,0,3,2],[2,3,0,0]],
+                solution: [[4,1,2,3],[3,2,4,1],[1,4,3,2],[2,3,1,4]]
+            }
+        ];
+
+        const PUZZLES_6X6 = [
+            {
+                puzzle: [[0,2,0,5,0,6],[5,0,6,0,2,0],[0,5,0,0,6,2],[2,6,0,0,5,0],[0,3,0,6,0,5],[6,0,5,0,3,0]],
+                solution: [[1,2,3,5,4,6],[5,4,6,3,2,1],[3,5,1,4,6,2],[2,6,4,1,5,3],[4,3,2,6,1,5],[6,1,5,2,3,4]]
+            },
+            {
+                puzzle: [[1,0,0,4,0,6],[0,6,4,0,1,0],[0,4,0,0,6,1],[6,1,0,0,4,0],[0,3,0,6,0,4],[4,0,6,0,0,3]],
+                solution: [[1,2,3,4,5,6],[5,6,4,2,1,3],[2,4,5,3,6,1],[6,1,2,5,4,3],[3,5,1,6,2,4],[4,3,6,1,5,2]]
+            }
+        ];
+        
+        // --- Utility Functions for Notification and Time ---
+
+        function showNotification(message, type = 'info') {
+            const notif = document.getElementById('game-notification');
+            notif.textContent = message;
+            notif.className = 'text-center p-3 rounded-xl font-black text-white mb-4'; // Reset classes
+            
+            if (type === 'error') {
+                notif.classList.add('bg-red-500', 'shadow-lg');
+            } else if (type === 'success') {
+                notif.classList.add('bg-green-500', 'shadow-lg');
+            } else {
+                notif.classList.add('bg-blue-500', 'shadow-lg');
+            }
+            notif.classList.remove('hidden');
+            
+            setTimeout(() => {
+                notif.classList.add('hidden');
+            }, 3000);
+        }
+
+        function formatTime(totalSeconds) {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        }
+
+        function showWelcome() {
+            stopTimer();
+            document.getElementById('welcome-screen').classList.remove('hidden');
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('name-error').classList.add('hidden');
+        }
+
+        // --- Core Sudoku Logic (Simplified and Integrated) ---
+
+        // Initialize game
+        function startGame(difficulty, levelName) {
+            playerName = document.getElementById('player-name').value.trim();
+            if (!playerName) {
+                document.getElementById('name-error').classList.remove('hidden');
+                return;
+            }
+            document.getElementById('name-error').classList.add('hidden');
+
+            currentLevel = levelName;
+            document.getElementById('display-name').textContent = playerName;
+            document.getElementById('display-level').textContent = levelName;
+            
+            // Set grid parameters
+            if (difficulty === '4x4') {
+                gridSize = 4;
+                boxSize = 2;
+                loadPuzzle(PUZZLES_4X4);
+            } else if (difficulty === '6x6') {
+                gridSize = 6;
+                boxSize = 2;
+                loadPuzzle(PUZZLES_6X6);
+            } else if (difficulty.startsWith('9x9')) {
+                gridSize = 9;
+                boxSize = 3;
+                let cellsToRemove = difficulty === '9x9-easy' ? 35 : difficulty === '9x9-medium' ? 45 : 55;
+                generateSudoku(cellsToRemove); // Placeholder for 9x9 generation
+            }
+
+            resetStats();
+            renderGrid();
+            renderNumberButtons();
+            
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            
+            startTimer();
+        }
+
+        function loadPuzzle(puzzleSet) {
+            const randomPuzzle = puzzleSet[Math.floor(Math.random() * puzzleSet.length)];
+            currentGrid = JSON.parse(JSON.stringify(randomPuzzle.puzzle));
+            solution = JSON.parse(JSON.stringify(randomPuzzle.solution));
+            initialGrid = JSON.parse(JSON.stringify(randomPuzzle.puzzle));
+        }
+        
+        // Simplified 9x9 Generation (Requires full implementation for full 9x9 support)
+        function generateSudoku(cellsToRemove) {
+             // **NOTE: Full Sudoku generation logic is complex. This uses a placeholder for now.**
+             showNotification("9x9 generation is not fully implemented yet. Please select 4x4 or 6x6.", 'error');
+             // Load the first 4x4 puzzle as fallback
+             gridSize = 4;
+             boxSize = 2;
+             loadPuzzle(PUZZLES_4X4);
+        }
+
+        // Helper functions (isValid, fillGrid) were removed as they are only needed for 9x9 generation which is complex.
+        // For the 4x4/6x6, we use pre-defined puzzles.
+
+        function renderGrid() {
+            const grid = document.getElementById('sudoku-grid');
+            grid.innerHTML = '';
+            // Update the grid class based on size
+            grid.className = `border-8 border-purple-600 rounded-2xl overflow-hidden shadow-2xl mx-auto grid-${gridSize}x${gridSize}`;
+            
+            const localBoxSize = gridSize === 4 || gridSize === 6 ? 2 : 3; // Ensure correct box sizing
+
+            for (let r = 0; r < gridSize; r++) {
+                for (let c = 0; c < gridSize; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'sudoku-cell';
+                    
+                    // Add thick borders for 2x2 or 3x3 box boundaries
+                    if ((c + 1) % localBoxSize === 0 && c !== gridSize - 1) {
+                        cell.classList.add('thick-border-right');
+                    }
+                    if ((r + 1) % localBoxSize === 0 && r !== gridSize - 1) {
+                        cell.classList.add('thick-border-bottom');
+                    }
+                    
+                    const value = currentGrid[r][c];
+                    const isPrefilled = initialGrid[r][c] !== 0;
+                    
+                    if (isPrefilled) {
+                        cell.classList.add('prefilled');
+                        cell.textContent = value;
+                    } else {
+                        cell.classList.add('user-input');
+                        const input = document.createElement('input');
+                        input.type = 'number'; // Changed to number for mobile keyboard, but logic uses text/number conversion
+                        input.maxLength = 1;
+                        input.min = 1;
+                        input.max = gridSize; // Restrict input max based on grid size
+                        input.dataset.row = r;
+                        input.dataset.col = c;
+                        if (value !== 0) input.value = value;
+                        
+                        input.addEventListener('focus', (e) => selectCell(r, c));
+                        input.addEventListener('input', (e) => handleInput(e, r, c));
+                        
+                        cell.appendChild(input);
+                    }
+                    
+                    grid.appendChild(cell);
+                }
+            }
+        }
+
+        function renderNumberButtons() {
+            const container = document.getElementById('number-buttons');
+            container.innerHTML = '';
+            
+            const colors = [
+                'from-red-400 to-red-600', 'from-orange-400 to-orange-600', 'from-yellow-400 to-yellow-600', 
+                'from-green-400 to-green-600', 'from-blue-400 to-blue-600', 'from-indigo-400 to-indigo-600', 
+                'from-purple-400 to-purple-600', 'from-pink-400 to-pink-600', 'from-rose-400 to-rose-600'
+            ];
+            
+            for (let i = 1; i <= gridSize; i++) {
+                const btn = document.createElement('button');
+                btn.className = `number-btn bg-gradient-to-br ${colors[i-1]} text-white font-black rounded-2xl hover:scale-110 transition shadow-xl`;
+                btn.textContent = i;
+                btn.onclick = () => placeNumber(i);
+                container.appendChild(btn);
+            }
+            
+            const eraseBtn = document.createElement('button');
+            eraseBtn.className = 'number-btn bg-gradient-to-br from-gray-600 to-gray-800 text-white font-black rounded-2xl hover:scale-110 transition shadow-xl';
+            eraseBtn.innerHTML = '✖';
+            eraseBtn.onclick = () => placeNumber(0);
+            container.appendChild(eraseBtn);
+        }
+
+        function selectCell(row, col) {
+            selectedCell = {row, col};
+            document.querySelectorAll('.sudoku-cell').forEach(cell => {
+                cell.classList.remove('selected');
+            });
+            const cells = document.getElementById('sudoku-grid').children;
+            cells[row * gridSize + col].classList.add('selected');
+        }
+
+        function handleInput(e, row, col) {
+            let value = e.target.value;
+            // Basic input validation: enforce max length 1 and number within range
+            if (value.length > 1) {
+                value = value.slice(0, 1);
+                e.target.value = value;
+            }
+            if (value === '' || (parseInt(value) >= 1 && parseInt(value) <= gridSize)) {
+                const num = value === '' ? 0 : parseInt(value);
+                placeNumberAt(row, col, num);
+            } else {
+                // If invalid number, revert to previous state
+                e.target.value = currentGrid[row][col] === 0 ? '' : currentGrid[row][col];
+            }
+        }
+
+        function placeNumber(num) {
+            if (selectedCell && !gameWon) {
+                const {row, col} = selectedCell;
+                // Only allow placing a number if it's not a prefilled cell
+                if (initialGrid[row][col] === 0) {
+                    placeNumberAt(row, col, num);
+                } else {
+                    showNotification("That number is prefilled and cannot be changed!", 'error');
+                }
+            } else if (!gameWon) {
+                 showNotification("Please select a cell first!", 'info');
+            }
+        }
+
+        function placeNumberAt(row, col, num) {
+            currentGrid[row][col] = num;
+            
+            const input = document.querySelector(`input[data-row="${row}"][data-col="${col}"]`);
+            if (input) {
+                input.value = num === 0 ? '' : num;
+            }
+            
+            // Score update only for non-zero entries
+            if (num !== 0) {
+                if (num === solution[row][col]) {
+                    score += 10;
+                } else {
+                    mistakes++;
+                    score = Math.max(0, score - 5);
+                }
+                updateStats();
+                checkWin();
+            }
+        }
+
+        function giveHint() {
+            if (gameWon) return;
+            
+            const emptyCells = [];
+            for (let r = 0; r < gridSize; r++) {
+                for (let c = 0; c < gridSize; c++) {
+                    if (currentGrid[r][c] === 0 && initialGrid[r][c] === 0) {
+                        emptyCells.push({r, c});
+                    }
+                }
+            }
+            
+            if (emptyCells.length > 0) {
+                const cell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                placeNumberAt(cell.r, cell.c, solution[cell.r][cell.c]);
+                score = Math.max(0, score - 15);
+                hintsUsed++;
+                updateStats();
+                showNotification(`Hint used! (-15 points) Remaining empty cells: ${emptyCells.length - 1}`, 'info');
+            } else {
+                 showNotification("The puzzle is already complete!", 'success');
+            }
+        }
+
+        function checkSolution() {
+            if (gameWon) return;
+            
+            let allCorrect = true;
+            let allFilled = true;
+            
+            const inputs = document.querySelectorAll('.user-input input');
+            inputs.forEach(input => {
+                const r = parseInt(input.dataset.row);
+                const c = parseInt(input.dataset.col);
+                const userVal = currentGrid[r][c];
+                
+                input.parentElement.classList.remove('correct', 'incorrect');
+                
+                if (userVal === 0) {
+                    allFilled = false;
+                } else if (userVal !== solution[r][c]) {
+                    input.parentElement.classList.add('incorrect');
+                    allCorrect = false;
+                } else {
+                    // Temporarily highlight correct answers
+                    input.parentElement.classList.add('correct');
+                    // Remove highlight after a short period
+                    setTimeout(() => { input.parentElement.classList.remove('correct'); }, 1000);
+                }
+            });
+            
+            if (!allFilled) {
+                showNotification('📝 Please fill all cells first!', 'error');
+            } else if (allCorrect) {
+                winGame();
+            } else {
+                showNotification('🔍 Some cells are incorrect. Check the highlighted red ones!', 'error');
+                // Remove incorrect highlights after a short period
+                setTimeout(() => { 
+                    document.querySelectorAll('.sudoku-cell.incorrect').forEach(cell => cell.classList.remove('incorrect'));
+                }, 1000);
+            }
+        }
+
+        function checkWin() {
+            for (let r = 0; r < gridSize; r++) {
+                for (let c = 0; c < gridSize; c++) {
+                    if (currentGrid[r][c] !== solution[r][c]) {
+                        return;
+                    }
+                }
+            }
+            winGame();
+        }
+
+        function winGame() {
+            gameWon = true;
+            stopTimer();
+            
+            const bonus = Math.max(0, 100 - mistakes * 5 - hintsUsed * 5); // Revised bonus logic
+            score += bonus;
+            
+            document.getElementById('win-message').classList.remove('hidden');
+            document.getElementById('win-text').textContent = 
+                `You completed the ${currentLevel} challenge in ${formatTime(timer)}! Final Score: ${score} points! 🌟`;
+            
+            updateStats();
+        }
+
+        function clearBoard() {
+            for (let r = 0; r < gridSize; r++) {
+                for (let c = 0; c < gridSize; c++) {
+                    if (initialGrid[r][c] === 0) {
+                        currentGrid[r][c] = 0;
+                    }
+                }
+            }
+            renderGrid();
+             showNotification("User inputs cleared!", 'info');
+        }
+
+        function resetGame() {
+            currentGrid = JSON.parse(JSON.stringify(initialGrid));
+            resetStats();
+            renderGrid();
+            startTimer();
+            showNotification(`Restarting ${currentLevel} puzzle!`, 'info');
+        }
+
+        function resetStats() {
+            score = 0;
+            mistakes = 0;
+            timer = 0;
+            gameWon = false;
+            hintsUsed = 0;
+            selectedCell = null;
+            document.getElementById('win-message').classList.add('hidden');
+            updateStats();
+        }
+
+        function updateStats() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('mistakes').textContent = mistakes;
+        }
+
+        function startTimer() {
+            stopTimer();
+            timerInterval = setInterval(() => {
+                timer++;
+                document.getElementById('timer').textContent = formatTime(timer);
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        // Initialize to show the welcome screen
+        window.onload = showWelcome; 
+    </script>
+
+</body>
+</html>
